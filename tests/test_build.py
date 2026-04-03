@@ -201,6 +201,19 @@ class TestBuildEnv(unittest.TestCase):
             self.assertIn("-fPIC", flags)
             self.assertNotIn("-dynamiclib", flags)
 
+    def test_python_link_flags_windows(self):
+        if platform.system() != "Windows":
+            self.skipTest("Windows-only")
+        flags = self._build._python_link_flags()
+        self.assertTrue(flags)
+        self.assertTrue(any(f.startswith("-L") for f in flags))
+        self.assertTrue(any(f.startswith("-lpython") for f in flags))
+
+    def test_python_link_flags_non_windows(self):
+        if platform.system() == "Windows":
+            self.skipTest("non-Windows only")
+        self.assertEqual(self._build._python_link_flags(), [])
+
     def test_repair_command_darwin(self):
         if platform.system() != "Darwin":
             self.skipTest("Darwin-only")

@@ -46,6 +46,22 @@ def _ldflags() -> list[str]:
     return ["-shared", "-fPIC"]
 
 
+def _python_link_flags() -> list[str]:
+    """
+    On Windows/MinGW, return flags to explicitly link the Python import library.
+    Linux/macOS resolve Python symbols at runtime (dynamic lookup / system linker);
+    Windows requires them at link time.
+    """
+    if platform.system() != "Windows":
+        return []
+    major = sys.version_info.major
+    minor = sys.version_info.minor
+    libdir = sysconfig.get_config_var("LIBDIR") or str(
+        Path(sysconfig.get_path("stdlib")).parent
+    )
+    return [f"-L{libdir}", f"-lpython{major}.{minor}"]
+
+
 def _default_build(
     *,
     name: str,
@@ -79,6 +95,7 @@ def _default_build(
             f"-I{include_dir}",
             *[str(f) for f in c_files],
             "-o", str(output),
+            *_python_link_flags(),
         ]
         print(f"just-build: default build: {shlex.join(cmd)}", flush=True)
         result = subprocess.run(cmd, cwd=str(project_root))
@@ -143,7 +160,7 @@ def run_build(
             "JUST_BUILD_INCLUDE_DIR": include_dir,
             "JUST_BUILD_OUTPUT_DIR": str(output_dir),
             "JUST_BUILD_EXT_SUFFIX": ext_suffix,
-            "JUST_BUILD_LDFLAGS": " ".join(_ldflags()),
+            "JUST_BUILD_LDFLAGS": " ".join(_ldflags() + _python_link_flags()),
         })
 
         print(f"just-build: running build command: {command}", flush=True)

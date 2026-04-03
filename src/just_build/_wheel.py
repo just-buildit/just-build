@@ -207,5 +207,5 @@ def build_wheel(
         zf.writestr(f"{dist_info}/WHEEL", wheel_meta)
         zf.writestr(record_arcname, record_data)
 
-    print(f"just-build: wrote raw wheel → {wheel_path}", flush=True)
+    print(f"just-build: wrote raw wheel -> {wheel_path}", flush=True)
     return wheel_path
