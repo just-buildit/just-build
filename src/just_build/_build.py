@@ -40,20 +40,22 @@ def _auto_repair_command() -> str | None:
 def _default_build(
     *,
     name: str,
+    package: str,
     output_dir: Path,
     project_root: Path,
     include_dir: str,
     ext_suffix: str,
-) -> None:
+) -> bool:
     """
-    Zero-config build: compile all *.c files from src/{name}/ and copy
+    Zero-config build: compile all *.c files from src/{package}/ and copy
     everything else (Python sources, data) to output_dir verbatim.
+    Returns True if C extensions were compiled, False for pure-Python packages.
     """
-    src_dir = project_root / "src" / name
+    src_dir = project_root / "src" / package
     if not src_dir.is_dir():
         raise FileNotFoundError(
-            f"No command set in [tool.just-build] and no src/{name}/ directory found.\n\n"
-            f"For zero-config builds, create src/{name}/{name}.c\n"
+            f"No command set in [tool.just-build] and no src/{package}/ directory found.\n\n"
+            f"For zero-config builds, put your sources in src/{package}/\n"
             f"Or set a build command:\n\n"
             f"  [tool.just-build]\n"
             f'  command = "make"\n'
@@ -73,20 +75,28 @@ def _default_build(
         result = subprocess.run(cmd, cwd=str(project_root))
         if result.returncode != 0:
             raise RuntimeError(f"Default build failed with exit code {result.returncode}")
+    else:
+        print(f"just-build: no .c files in src/{package}/ — pure Python package", flush=True)
 
     # Copy all non-source files (Python sources, data, etc.) preserving tree structure.
     # .c and .h stay in the source tree — they have no place in a wheel.
+    # Pure Python packages go into a {package}/ subdir so `import {package}` works.
+    # C extension packages put files at the root alongside the compiled .so.
     _skip = {".c", ".h"}
+    pkg_out = output_dir / package if not c_files else output_dir
     for src_file in src_dir.rglob("*"):
         if src_file.is_file() and src_file.suffix not in _skip:
-            dst = output_dir / src_file.relative_to(src_dir)
+            dst = pkg_out / src_file.relative_to(src_dir)
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_bytes(src_file.read_bytes())
+
+    return bool(c_files)
 
 
 def run_build(
     *,
     name: str,
+    package: str,
     command: str | None,
     output_dir: Path,
     project_root: Path,
@@ -105,9 +115,12 @@ def run_build(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    needs_extension = True
+
     if command is None:
-        _default_build(
+        needs_extension = _default_build(
             name=name,
+            package=package,
             output_dir=output_dir,
             project_root=project_root,
             include_dir=include_dir,
@@ -117,6 +130,7 @@ def run_build(
         env = os.environ.copy()
         env.update({
             "JUST_BUILD_NAME": name,
+            "JUST_BUILD_PYTHON": sys.executable,
             "JUST_BUILD_INCLUDE_DIR": include_dir,
             "JUST_BUILD_OUTPUT_DIR": str(output_dir),
             "JUST_BUILD_EXT_SUFFIX": ext_suffix,
@@ -124,6 +138,7 @@ def run_build(
 
         print(f"just-build: running build command: {command}", flush=True)
         print(f"  JUST_BUILD_NAME        = {name}", flush=True)
+        print(f"  JUST_BUILD_PYTHON      = {sys.executable}", flush=True)
         print(f"  JUST_BUILD_INCLUDE_DIR = {include_dir}", flush=True)
         print(f"  JUST_BUILD_OUTPUT_DIR  = {output_dir}", flush=True)
         print(f"  JUST_BUILD_EXT_SUFFIX  = {ext_suffix}", flush=True)
@@ -138,15 +153,10 @@ def run_build(
                 f"Build command failed with exit code {result.returncode}:\n  {command}"
             )
 
-    extensions = list(output_dir.rglob(f"*{ext_suffix}"))
-    if not extensions:
-        hint = (
-            f"Make sure your build command writes extensions to $JUST_BUILD_OUTPUT_DIR"
-            if command else
-            f"No *.c files found in src/{name}/"
-        )
+    if needs_extension and not list(output_dir.rglob(f"*{ext_suffix}")):
         raise FileNotFoundError(
-            f"Build produced no extension (*{ext_suffix}) in {output_dir}\n\n{hint}"
+            f"Build produced no extension (*{ext_suffix}) in {output_dir}\n\n"
+            f"Make sure your build command writes extensions to $JUST_BUILD_OUTPUT_DIR"
         )
 
     return output_dir

@@ -26,8 +26,9 @@ _CONTENT_TYPES = {".md": "text/markdown", ".rst": "text/x-rst", ".txt": "text/pl
 class BuildConfig:
     name: str
     version: str
-    command: str | None                  # None = zero-config src/{name}/ default
+    command: str | None                  # None = zero-config src/{package}/ default
     repair: str | Literal[False] | None  # None = auto-detect
+    package: str | None = None           # package dir name; defaults to normalized project name
     exclude: list[str] = field(default_factory=list)
     summary: str | None = None
     readme_text: str | None = None
@@ -75,7 +76,8 @@ def load(project_root: Path) -> BuildConfig:
 
     jb = data.get("tool", {}).get("just-build", {})
 
-    command = jb.get("command") or None  # None → zero-config src/{name}/ default
+    command = jb.get("command") or None  # None → zero-config src/{package}/ default
+    package = jb.get("package") or None  # override package dir name for src/ lookup
     exclude = jb.get("exclude", [])
 
     raw_repair = jb.get("repair", _MISSING)
@@ -96,6 +98,7 @@ def load(project_root: Path) -> BuildConfig:
         version=version,
         command=command,
         repair=repair,
+        package=package,
         exclude=exclude,
         summary=project.get("description") or None,
         readme_text=readme_text,

@@ -1,6 +1,10 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["just-buildit"]
+build-backend = "just_build"
+
+[tool.just-build]
+package = "just_build"
+repair = false
 
 [project]
 name = "just-buildit"

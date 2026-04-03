@@ -11,10 +11,13 @@ That's it.
 
 from __future__ import annotations
 
+__version__ = "0.1.0"
+
 import tempfile
 from pathlib import Path
 
 from . import _build, _meta, _wheel
+from ._wheel import _normalize_name
 
 
 def get_requires_for_build_wheel(config_settings=None) -> list[str]:
@@ -53,8 +56,10 @@ def build_wheel(
         output_dir = Path(tmp) / "output"
 
         # Step 1: build → output_dir (the wheel content root)
+        package = config.package or _normalize_name(config.name)
         output_dir = _build.run_build(
             name=config.name,
+            package=package,
             command=config.command,
             output_dir=output_dir,
             project_root=project_root,

@@ -54,8 +54,11 @@ def _platform_tag() -> str:
     return tag.replace("-", "_").replace(".", "_")
 
 
+_ALWAYS_EXCLUDE = ("**/__pycache__/**", "**/*.pyc", "**/*.pyo")
+
+
 def _is_excluded(rel_path: str, patterns: list[str]) -> bool:
-    return any(fnmatch.fnmatch(rel_path, pat) for pat in patterns)
+    return any(fnmatch.fnmatch(rel_path, pat) for pat in (*_ALWAYS_EXCLUDE, *patterns))
 
 
 def _sha256_record(data: bytes) -> str:
@@ -89,11 +92,11 @@ def _metadata_bytes(
     return "\n".join(lines).encode()
 
 
-def _wheel_meta_bytes(py_tag: str, abi_tag: str, plat_tag: str) -> bytes:
+def _wheel_meta_bytes(py_tag: str, abi_tag: str, plat_tag: str, pure: bool = False) -> bytes:
     return (
         f"Wheel-Version: 1.0\n"
         f"Generator: just-build\n"
-        f"Root-Is-Purelib: false\n"
+        f"Root-Is-Purelib: {'true' if pure else 'false'}\n"
         f"Tag: {py_tag}-{abi_tag}-{plat_tag}\n"
     ).encode()
 
@@ -145,9 +148,23 @@ def build_wheel(
     """
     norm_name = _normalize_name(name)
     norm_version = _normalize_version(version)
-    py_tag = _python_tag()
-    abi_tag = _abi_tag()
-    plat_tag = _platform_tag()
+
+    # Collect all files from output_dir, preserving tree structure
+    _exclude = exclude or []
+    content_files = sorted(
+        p for p in output_dir.rglob("*")
+        if p.is_file() and not _is_excluded(str(p.relative_to(output_dir)), _exclude)
+    )
+
+    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX") or ""
+    pure = not any(str(p).endswith(ext_suffix) for p in content_files)
+
+    if pure:
+        py_tag, abi_tag, plat_tag = "py3", "none", "any"
+    else:
+        py_tag = _python_tag()
+        abi_tag = _abi_tag()
+        plat_tag = _platform_tag()
 
     wheel_name = f"{norm_name}-{norm_version}-{py_tag}-{abi_tag}-{plat_tag}.whl"
     wheel_path = wheel_dir / wheel_name
@@ -160,14 +177,7 @@ def build_wheel(
         readme_content_type=readme_content_type,
         requires_python=requires_python,
     )
-    wheel_meta = _wheel_meta_bytes(py_tag, abi_tag, plat_tag)
-
-    # Collect all files from output_dir, preserving tree structure
-    _exclude = exclude or []
-    content_files = sorted(
-        p for p in output_dir.rglob("*")
-        if p.is_file() and not _is_excluded(str(p.relative_to(output_dir)), _exclude)
-    )
+    wheel_meta = _wheel_meta_bytes(py_tag, abi_tag, plat_tag, pure=pure)
 
     record_entries: list[tuple[str, str, int]] = []
 

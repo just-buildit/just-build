@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+
+  <!-- Background -->
+  <rect width="200" height="200" rx="32" fill="#0d1117"/>
+
+  <!-- Gear (12 teeth) -->
+  <polygon
+    fill="#f59e0b"
+    points="
+      180.0,100.0 159.9,116.0 169.3,140.0 143.8,143.8
+      140.0,169.3 116.0,159.9 100.0,180.0  84.0,159.9
+       60.0,169.3  56.2,143.8  30.7,140.0  40.1,116.0
+       20.0,100.0  40.1, 84.0  30.7, 60.0  56.2, 56.2
+       60.0, 30.7  84.0, 40.1 100.0, 20.0 116.0, 40.1
+      140.0, 30.7 143.8, 56.2 169.3, 60.0 159.9, 84.0
+    "
+  />
+
+  <!-- Center hub cutout -->
+  <circle cx="100" cy="100" r="42" fill="#0d1117"/>
+
+  <!-- "jb" wordmark -->
+  <text
+    x="100" y="115"
+    font-family="'Courier New', Courier, monospace"
+    font-size="46"
+    font-weight="bold"
+    fill="#ffffff"
+    text-anchor="middle"
+  >jb</text>
+
+</svg>

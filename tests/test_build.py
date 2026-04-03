@@ -25,7 +25,7 @@ from pathlib import Path
 
 FIXTURE = Path(__file__).parent / "fixture"
 FIXTURE_NOCONFIG = Path(__file__).parent / "fixture_noconfig"
-JUST_BUILD = Path(__file__).parent.parent / "just_build"
+JUST_BUILD = Path(__file__).parent.parent / "src" / "just_build"
 
 
 def _load_just_build():

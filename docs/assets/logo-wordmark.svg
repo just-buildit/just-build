@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120">
+
+  <!-- Background -->
+  <rect width="480" height="120" rx="20" fill="#0d1117"/>
+
+  <!-- Gear icon (scaled to 100x100, centered at 60,60) -->
+  <g transform="translate(10,10) scale(0.5)">
+    <polygon
+      fill="#f59e0b"
+      points="
+        180.0,100.0 159.9,116.0 169.3,140.0 143.8,143.8
+        140.0,169.3 116.0,159.9 100.0,180.0  84.0,159.9
+         60.0,169.3  56.2,143.8  30.7,140.0  40.1,116.0
+         20.0,100.0  40.1, 84.0  30.7, 60.0  56.2, 56.2
+         60.0, 30.7  84.0, 40.1 100.0, 20.0 116.0, 40.1
+        140.0, 30.7 143.8, 56.2 169.3, 60.0 159.9, 84.0
+      "
+    />
+    <circle cx="100" cy="100" r="42" fill="#0d1117"/>
+    <text
+      x="100" y="115"
+      font-family="'Courier New', Courier, monospace"
+      font-size="46"
+      font-weight="bold"
+      fill="#ffffff"
+      text-anchor="middle"
+    >jb</text>
+  </g>
+
+  <!-- Divider -->
+  <line x1="118" y1="24" x2="118" y2="96" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Wordmark -->
+  <text
+    x="148" y="58"
+    font-family="'Courier New', Courier, monospace"
+    font-size="30"
+    font-weight="bold"
+    fill="#f59e0b"
+    dominant-baseline="middle"
+  >just-build</text>
+
+  <!-- Tagline -->
+  <text
+    x="150" y="84"
+    font-family="'Courier New', Courier, monospace"
+    font-size="13"
+    fill="#6b7280"
+    dominant-baseline="middle"
+  >PEP 517 build backend for C extensions</text>
+
+</svg>
