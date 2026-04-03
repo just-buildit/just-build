@@ -60,6 +60,25 @@ class TestNoDependencies(unittest.TestCase):
         self.assertIsInstance(result, list)
 
 
+class TestBuildEditable(unittest.TestCase):
+    """build_editable() must produce a valid wheel (delegates to build_wheel)."""
+
+    def test_build_editable_produces_same_result_as_build_wheel(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            wheel_dir = Path(tmp) / "dist"
+            wheel_dir.mkdir()
+            orig = os.getcwd()
+            os.chdir(FIXTURE)
+            try:
+                wheel_name = just_build.build_editable(str(wheel_dir))
+            finally:
+                os.chdir(orig)
+            wheel_path = wheel_dir / wheel_name
+            self.assertTrue(wheel_path.exists())
+            self.assertEqual(wheel_path.suffix, ".whl")
+            self.assertTrue(zipfile.is_zipfile(wheel_path))
+
+
 class TestBuildWheel(unittest.TestCase):
 
     def _build_fixture(self, wheel_dir: Path) -> str:
