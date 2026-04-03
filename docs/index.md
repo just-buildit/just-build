@@ -1,4 +1,6 @@
-# just-build
+<p align="center">
+  <img src="assets/logo-wordmark.svg" alt="just-build" width="480">
+</p>
 
 The missing [PEP 517](https://peps.python.org/pep-0517/) build backend for C extensions.
 
