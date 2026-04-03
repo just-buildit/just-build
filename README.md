@@ -214,6 +214,14 @@ repair = "uvx auditwheel repair --plat manylinux_2_28_x86_64"  # custom
 
 ---
 
+## Editable installs
+
+`pip install -e .` works. C extensions can't be truly editable — recompilation
+is always required — so just-build builds a regular wheel and installs that.
+The result is identical to `pip install .`.
+
+---
+
 ## Full configuration reference
 
 ```toml
