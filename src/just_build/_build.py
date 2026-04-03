@@ -31,7 +31,8 @@ def _auto_repair_command() -> str | None:
     if system == "Linux":
         return "uvx auditwheel repair"
     elif system == "Darwin":
-        return "uvx --from delocate delocate-wheel"
+        arch = platform.machine()  # 'arm64' or 'x86_64'
+        return f"uvx --from delocate delocate-wheel --require-archs {arch}"
     elif system == "Windows":
         return "uvx delvewheel repair"
     return None

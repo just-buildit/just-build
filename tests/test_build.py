@@ -195,6 +195,15 @@ class TestBuildEnv(unittest.TestCase):
             self.assertIn("-fPIC", flags)
             self.assertNotIn("-dynamiclib", flags)
 
+    def test_repair_command_darwin(self):
+        if platform.system() != "Darwin":
+            self.skipTest("Darwin-only")
+        cmd = self._build._auto_repair_command()
+        self.assertIsNotNone(cmd)
+        self.assertIn("delocate", cmd)
+        self.assertIn("--require-archs", cmd)
+        self.assertIn(platform.machine(), cmd)
+
 
 class TestErrorHandling(unittest.TestCase):
 
