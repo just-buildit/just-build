@@ -5,8 +5,7 @@ Public surface (PEP 517):
   get_requires_for_build_wheel()
   prepare_metadata_for_build_wheel()
   build_wheel()
-
-That's it.
+  build_editable()
 """
 
 from __future__ import annotations
@@ -40,6 +39,15 @@ def prepare_metadata_for_build_wheel(
         requires_python=config.requires_python,
     )
     return dist_info.name
+
+
+def build_editable(
+    wheel_directory: str,
+    config_settings=None,
+    metadata_directory: str | None = None,
+) -> str:
+    # C extension packages cannot be truly editable; build a regular wheel.
+    return build_wheel(wheel_directory, config_settings, metadata_directory)
 
 
 def build_wheel(
