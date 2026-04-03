@@ -2,6 +2,9 @@
   <img src="docs/assets/logo-wordmark.svg" alt="just-build" width="480">
 </p>
 
+[![CI](https://github.com/just-buildit/just-build/actions/workflows/ci.yml/badge.svg)](https://github.com/just-buildit/just-build/actions/workflows/ci.yml)
+[![Docs](https://github.com/just-buildit/just-build/actions/workflows/docs.yml/badge.svg)](https://github.com/just-buildit/just-build/actions/workflows/docs.yml)
+
 The missing [PEP 517](https://peps.python.org/pep-0517/) build backend for C extensions.
 
 You know how to build your project. just-build knows how to package it.
