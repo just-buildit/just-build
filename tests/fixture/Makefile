@@ -18,7 +18,7 @@ all: $(TARGET)
 
 $(TARGET):
 	$(CC) $(CFLAGS) \
-		-shared -fPIC \
+		$(JUST_BUILD_LDFLAGS) \
 		-I$(JUST_BUILD_INCLUDE_DIR) \
 		$(SRC) \
 		-o $(TARGET)

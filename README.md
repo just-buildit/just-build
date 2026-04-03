@@ -74,6 +74,7 @@ just-build sets these before calling your command:
 | `JUST_BUILD_INCLUDE_DIR` | `/usr/include/python3.12` |
 | `JUST_BUILD_OUTPUT_DIR` | `/tmp/just-build-xyz/output` |
 | `JUST_BUILD_EXT_SUFFIX` | `.cpython-312-x86_64-linux-gnu.so` |
+| `JUST_BUILD_LDFLAGS` | `-shared -fPIC` (Linux) / `-dynamiclib -undefined dynamic_lookup` (macOS) |
 
 `$JUST_BUILD_OUTPUT_DIR` is the wheel content root. Write everything your
 wheel needs there — extensions, Python sources, data files. just-build
@@ -91,7 +92,7 @@ TARGET := $(JUST_BUILD_OUTPUT_DIR)/$(JUST_BUILD_NAME)$(JUST_BUILD_EXT_SUFFIX)
 all: $(TARGET)
 
 $(TARGET):
-	$(CC) -shared -fPIC \
+	$(CC) $(JUST_BUILD_LDFLAGS) \
 		-I$(JUST_BUILD_INCLUDE_DIR) \
 		src/mylib/mylib.c \
 		-o $(TARGET)
@@ -178,7 +179,7 @@ all: $(EXT)
 
 $(EXT):
 	mkdir -p $(JUST_BUILD_OUTPUT_DIR)/mylib
-	$(CC) -shared -fPIC \
+	$(CC) $(JUST_BUILD_LDFLAGS) \
 		-I$(JUST_BUILD_INCLUDE_DIR) \
 		src/mylib/_core.c \
 		-o $(EXT)

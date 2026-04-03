@@ -37,6 +37,13 @@ def _auto_repair_command() -> str | None:
     return None
 
 
+def _ldflags() -> list[str]:
+    """Return platform-appropriate shared-library link flags."""
+    if platform.system() == "Darwin":
+        return ["-dynamiclib", "-undefined", "dynamic_lookup"]
+    return ["-shared", "-fPIC"]
+
+
 def _default_build(
     *,
     name: str,
@@ -66,7 +73,7 @@ def _default_build(
         output = output_dir / f"{name}{ext_suffix}"
         cmd = [
             os.environ.get("CC", "cc"),
-            "-shared", "-fPIC", "-O2",
+            *_ldflags(), "-O2",
             f"-I{include_dir}",
             *[str(f) for f in c_files],
             "-o", str(output),
@@ -134,6 +141,7 @@ def run_build(
             "JUST_BUILD_INCLUDE_DIR": include_dir,
             "JUST_BUILD_OUTPUT_DIR": str(output_dir),
             "JUST_BUILD_EXT_SUFFIX": ext_suffix,
+            "JUST_BUILD_LDFLAGS": " ".join(_ldflags()),
         })
 
         print(f"just-build: running build command: {command}", flush=True)
@@ -142,6 +150,7 @@ def run_build(
         print(f"  JUST_BUILD_INCLUDE_DIR = {include_dir}", flush=True)
         print(f"  JUST_BUILD_OUTPUT_DIR  = {output_dir}", flush=True)
         print(f"  JUST_BUILD_EXT_SUFFIX  = {ext_suffix}", flush=True)
+        print(f"  JUST_BUILD_LDFLAGS     = {env['JUST_BUILD_LDFLAGS']}", flush=True)
 
         result = subprocess.run(
             shlex.split(command),

@@ -5,7 +5,7 @@ all: $(EXT)
 
 $(EXT):
 	mkdir -p $(JUST_BUILD_OUTPUT_DIR)/calc
-	$(CC) -shared -fPIC \
+	$(CC) $(JUST_BUILD_LDFLAGS) \
 		-I$(JUST_BUILD_INCLUDE_DIR) \
 		src/calc/_core.c \
 		-o $(EXT)
