@@ -201,8 +201,6 @@ class TestBuildEnv(unittest.TestCase):
         cmd = self._build._auto_repair_command()
         self.assertIsNotNone(cmd)
         self.assertIn("delocate", cmd)
-        self.assertIn("--require-archs", cmd)
-        self.assertIn(platform.machine(), cmd)
 
 
 class TestErrorHandling(unittest.TestCase):
