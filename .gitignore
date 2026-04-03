@@ -15,3 +15,6 @@ main.py
 
 # Example build artifacts
 examples/**/_build/
+
+# Zensical build output
+site/

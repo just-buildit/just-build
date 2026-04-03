@@ -1,0 +1,77 @@
+# ============================================================================
+# just-build — Zensical documentation configuration
+# https://zensical.org/docs/
+# ============================================================================
+
+[project]
+site_name        = "just-build"
+site_description = "Minimum viable PEP 517 build backend for C extensions."
+site_url         = "https://just-buildit.github.io/just-build/"
+repo_url         = "https://github.com/just-buildit/just-build"
+copyright        = "Copyright &copy; 2026 just-build contributors — MIT License"
+
+nav = [
+  { "Home"                  = "index.md"                   },
+  { "Environment Variables" = "environment-variables.md"   },
+  { "Examples"              = "examples.md"                },
+  { "Configuration"         = "configuration.md"           },
+  { "Contributing"          = "contributing.md"            },
+]
+
+# ----------------------------------------------------------------------------
+# Theme
+# ----------------------------------------------------------------------------
+[project.theme]
+logo     = "assets/logo.svg"
+favicon  = "assets/logo.svg"
+language = "en"
+
+[project.theme.font]
+text = "Inter"
+code = "JetBrains Mono"
+
+features = [
+  "announce.dismiss",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.footnote.tooltips",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.path",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+]
+
+# Dark mode first
+[[project.theme.palette]]
+scheme      = "slate"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+scheme      = "default"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to dark mode"
+
+# ----------------------------------------------------------------------------
+# Social links
+# ----------------------------------------------------------------------------
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/just-buildit/just-build"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/just-buildit/"
+
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
+]
