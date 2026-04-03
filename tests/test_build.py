@@ -16,6 +16,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import os
+import platform
 import subprocess
 import sys
 import tempfile
@@ -171,6 +172,28 @@ class TestDefaultBuild(unittest.TestCase):
                 sys.path.remove(str(install_dir))
                 if "hello" in sys.modules:
                     del sys.modules["hello"]
+
+
+class TestBuildEnv(unittest.TestCase):
+    """Verify platform-specific build environment helpers."""
+
+    _build = sys.modules["just_build._build"]
+
+    def test_ldflags_nonempty(self):
+        flags = self._build._ldflags()
+        self.assertTrue(flags, "_ldflags() must return at least one flag")
+
+    def test_ldflags_platform(self):
+        flags = self._build._ldflags()
+        if platform.system() == "Darwin":
+            self.assertIn("-dynamiclib", flags)
+            self.assertIn("-undefined", flags)
+            self.assertIn("dynamic_lookup", flags)
+            self.assertNotIn("-shared", flags)
+        else:
+            self.assertIn("-shared", flags)
+            self.assertIn("-fPIC", flags)
+            self.assertNotIn("-dynamiclib", flags)
 
 
 class TestErrorHandling(unittest.TestCase):

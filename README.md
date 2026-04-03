@@ -197,7 +197,7 @@ just-build automatically runs the right repair tool for your platform:
 | Platform | Tool |
 |---|---|
 | Linux | `uvx auditwheel repair` |
-| macOS | `uvx delocate-wheel` |
+| macOS | `uvx --from delocate delocate-wheel` |
 | Windows / MinGW | `uvx delvewheel repair` |
 
 Override or disable repair in your config:

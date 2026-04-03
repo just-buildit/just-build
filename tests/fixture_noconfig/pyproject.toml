@@ -7,3 +7,6 @@ name = "hello"
 version = "0.1.0"
 description = "Zero-config fixture for just-build integration tests."
 requires-python = ">=3.11"
+
+[tool.just-build]
+repair = false  # skip repair in tests; auditwheel/delocate not required in CI
