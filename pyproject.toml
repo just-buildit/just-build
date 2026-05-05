@@ -13,6 +13,24 @@ description = "The missing PEP 517 build backend for C extensions."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
+keywords = [
+    "pep517", "build-backend", "c-extension", "cmake", "meson",
+    "bazel", "make", "packaging", "wheel", "cffi",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: C",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Archiving :: Packaging",
+]
 
 [dependency-groups]
 dev = [
@@ -23,6 +41,8 @@ dev = [
 just-buildit = "just_buildit._cli:main"
 
 [project.urls]
-Homepage = "https://github.com/just-buildit/just-buildit"
+Homepage = "https://just-buildit.github.io/just-buildit/"
 Repository = "https://github.com/just-buildit/just-buildit"
+Documentation = "https://just-buildit.github.io/just-buildit/"
 "Bug Tracker" = "https://github.com/just-buildit/just-buildit/issues"
+Changelog = "https://github.com/just-buildit/just-buildit/blob/main/CHANGELOG.md"
