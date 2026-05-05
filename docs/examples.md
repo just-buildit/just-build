@@ -221,3 +221,49 @@ $(OUT)/mylib/filters $(OUT)/mylib/codec:
 ```
 
 The key: mirror your source tree under `$JUST_BUILDIT_OUTPUT_DIR`. just-buildit packages the directory verbatim, so any layout that works at runtime works in the wheel.
+
+---
+
+## Scaffolding with just-makeit
+
+No build system yet? [just-makeit](https://github.com/just-buildit/just-makeit) generates a complete CMake-based C extension project that wires up just-buildit out of the box — no configuration needed.
+
+```sh
+pip install just-makeit
+just-makeit new my_dsp --component gain --state gain:double:1.0
+cd my_dsp
+pip install .
+```
+
+The generated layout:
+
+```
+my_dsp/
+  CMakeLists.txt          # project setup + add_subdirectory per component
+  Makefile
+  pyproject.toml          # just-buildit backend, command = "make just-build"
+  native/
+    inc/gain/gain_core.h  # C API (state struct, create/destroy/step/reset)
+    src/gain/
+      gain_core.c
+      gain_ext.c
+      CMakeLists.txt      # per-component build targets
+    tests/test_gain_core.c
+  src/my_dsp/
+    __init__.py
+    gain.pyi
+    tests/test_gain.py
+```
+
+The generated `pyproject.toml` uses just-buildit with no extra work:
+
+```toml
+[build-system]
+requires = ["just-buildit", "numpy"]
+build-backend = "just_buildit"
+
+[tool.just-buildit]
+command = "make just-build"
+```
+
+Additional components can be added at any time with `just-makeit init <component>`. just-buildit remains agnostic to how many components exist — it packages whatever `make just-build` writes to `$JUST_BUILDIT_OUTPUT_DIR`.
