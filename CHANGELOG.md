@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1] — 2026-05-05
+
+### Added
+
+- PyPI metadata: keywords, classifiers (Python 3.11–3.14), project URLs (Homepage, Documentation, Changelog)
+- README: just-makeit callout and cross-link for projects needing a CMake scaffold
+
+---
+
 ## [0.3.0] — 2026-04-30
 
 ### Added
