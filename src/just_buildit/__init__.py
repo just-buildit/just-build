@@ -39,6 +39,10 @@ def prepare_metadata_for_build_wheel(
         readme_text=config.readme_text,
         readme_content_type=config.readme_content_type,
         requires_python=config.requires_python,
+        classifiers=config.classifiers or None,
+        keywords=config.keywords or None,
+        urls=config.urls or None,
+        dependencies=config.dependencies or None,
         scripts=config.scripts or None,
     )
     return dist_info.name
@@ -82,6 +86,10 @@ def build_editable(
             readme_text=config.readme_text,
             readme_content_type=config.readme_content_type,
             requires_python=config.requires_python,
+            classifiers=config.classifiers or None,
+            keywords=config.keywords or None,
+            urls=config.urls or None,
+            dependencies=config.dependencies or None,
             scripts=config.scripts or None,
         )
 
@@ -122,6 +130,10 @@ def build_wheel(
             readme_text=config.readme_text,
             readme_content_type=config.readme_content_type,
             requires_python=config.requires_python,
+            classifiers=config.classifiers or None,
+            keywords=config.keywords or None,
+            urls=config.urls or None,
+            dependencies=config.dependencies or None,
             scripts=config.scripts or None,
         )
 

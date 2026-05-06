@@ -74,6 +74,10 @@ def _metadata_bytes(
     readme_text: str | None = None,
     readme_content_type: str | None = None,
     requires_python: str | None = None,
+    classifiers: list[str] | None = None,
+    keywords: list[str] | None = None,
+    urls: dict[str, str] | None = None,
+    dependencies: list[str] | None = None,
 ) -> bytes:
     lines = [
         "Metadata-Version: 2.1",
@@ -84,6 +88,14 @@ def _metadata_bytes(
         lines.append(f"Summary: {summary}")
     if requires_python:
         lines.append(f"Requires-Python: {requires_python}")
+    for classifier in classifiers or []:
+        lines.append(f"Classifier: {classifier}")
+    if keywords:
+        lines.append(f"Keywords: {','.join(keywords)}")
+    for label, url in (urls or {}).items():
+        lines.append(f"Project-URL: {label}, {url}")
+    for dep in dependencies or []:
+        lines.append(f"Requires-Dist: {dep}")
     if readme_content_type:
         lines.append(f"Description-Content-Type: {readme_content_type}")
     lines.append("")  # blank line before body
@@ -117,6 +129,10 @@ def _write_dist_info(
     readme_text: str | None = None,
     readme_content_type: str | None = None,
     requires_python: str | None = None,
+    classifiers: list[str] | None = None,
+    keywords: list[str] | None = None,
+    urls: dict[str, str] | None = None,
+    dependencies: list[str] | None = None,
     scripts: dict[str, str] | None = None,
 ) -> Path:
     """Write a .dist-info directory for prepare_metadata_for_build_wheel."""
@@ -130,6 +146,10 @@ def _write_dist_info(
         readme_text=readme_text,
         readme_content_type=readme_content_type,
         requires_python=requires_python,
+        classifiers=classifiers,
+        keywords=keywords,
+        urls=urls,
+        dependencies=dependencies,
     ))
     (dist_info / "WHEEL").write_bytes(
         _wheel_meta_bytes(_python_tag(), _abi_tag(), _platform_tag())
@@ -150,6 +170,10 @@ def build_wheel(
     readme_text: str | None = None,
     readme_content_type: str | None = None,
     requires_python: str | None = None,
+    classifiers: list[str] | None = None,
+    keywords: list[str] | None = None,
+    urls: dict[str, str] | None = None,
+    dependencies: list[str] | None = None,
     scripts: dict[str, str] | None = None,
 ) -> Path:
     """
@@ -187,6 +211,10 @@ def build_wheel(
         readme_text=readme_text,
         readme_content_type=readme_content_type,
         requires_python=requires_python,
+        classifiers=classifiers,
+        keywords=keywords,
+        urls=urls,
+        dependencies=dependencies,
     )
     wheel_meta = _wheel_meta_bytes(py_tag, abi_tag, plat_tag, pure=pure)
     entry_points = _entry_points_bytes(scripts) if scripts else None

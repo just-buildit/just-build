@@ -37,6 +37,10 @@ class BuildConfig:
     readme_text: str | None = None
     readme_content_type: str | None = None
     requires_python: str | None = None
+    classifiers: list[str] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
+    urls: dict[str, str] = field(default_factory=dict)      # project.urls → Project-URL headers
+    dependencies: list[str] = field(default_factory=list)   # project.dependencies → Requires-Dist
 
 
 _MISSING = object()
@@ -111,4 +115,8 @@ def load(project_root: Path) -> BuildConfig:
         readme_text=readme_text,
         readme_content_type=readme_content_type,
         requires_python=project.get("requires-python") or None,
+        classifiers=project.get("classifiers", []),
+        keywords=project.get("keywords", []),
+        urls=project.get("urls", {}),
+        dependencies=project.get("dependencies", []),
     )
