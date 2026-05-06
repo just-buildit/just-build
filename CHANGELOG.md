@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Classifiers, keywords, project URLs, and dependencies were parsed from `pyproject.toml` but never written into the wheel's METADATA file — they now appear correctly on PyPI
+- Classifiers, keywords, project URLs, and dependencies were parsed from `pyproject.toml` but never written into the wheel METADATA or sdist PKG-INFO — they now appear correctly on PyPI
 
 ---
 

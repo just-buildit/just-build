@@ -54,6 +54,10 @@ def build_sdist(project_root: Path, sdist_dir: Path, config) -> Path:
         readme_text=config.readme_text,
         readme_content_type=config.readme_content_type,
         requires_python=config.requires_python,
+        classifiers=config.classifiers or None,
+        keywords=config.keywords or None,
+        urls=config.urls or None,
+        dependencies=config.dependencies or None,
     )
 
     mtime = int(time.time())
