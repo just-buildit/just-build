@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.3] — 2026-05-06
+
+### Fixed
+
+- Sdist `PKG-INFO` now includes classifiers, keywords, project URLs, and dependencies (previously only written into wheel `METADATA`)
+- `__version__` now derived from installed package metadata instead of a hardcoded string
+
+---
+
 ## [0.3.2] — 2026-05-06
 
 ### Fixed
