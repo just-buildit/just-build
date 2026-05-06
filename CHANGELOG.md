@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2] — 2026-05-06
+
+### Fixed
+
+- Classifiers, keywords, project URLs, and dependencies were parsed from `pyproject.toml` but never written into the wheel's METADATA file — they now appear correctly on PyPI
+
+---
+
 ## [0.3.1] — 2026-05-05
 
 ### Added
