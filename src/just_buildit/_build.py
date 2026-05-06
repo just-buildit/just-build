@@ -16,8 +16,6 @@ Environment variables set for the build command:
   JUST_BUILDIT_LIBS          Python link flags (after -o, Windows/MinGW only)
 """
 
-from __future__ import annotations
-
 import os
 import platform
 import shlex

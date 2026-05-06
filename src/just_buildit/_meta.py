@@ -12,8 +12,6 @@ Extracts:
   - tool.just-buildit.editable_path  (optional; src root for .pth editable installs; defaults to src/ if present)
 """
 
-from __future__ import annotations
-
 import tomllib
 
 from dataclasses import dataclass, field

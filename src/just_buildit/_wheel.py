@@ -11,8 +11,6 @@ Platform tag is derived from sysconfig; auditwheel/delocate will upgrade
 it to the appropriate manylinux/universal2 tag during the repair step.
 """
 
-from __future__ import annotations
-
 import csv
 import fnmatch
 import hashlib

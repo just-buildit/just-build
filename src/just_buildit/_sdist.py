@@ -5,8 +5,6 @@ Produces {name}-{version}.tar.gz with a top-level {name}-{version}/ directory.
 Includes all project files except build artifacts, VCS data, and caches.
 """
 
-from __future__ import annotations
-
 import io
 import tarfile
 import time
