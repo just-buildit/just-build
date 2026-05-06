@@ -12,7 +12,12 @@ Public surface (PEP 517):
 
 from __future__ import annotations
 
-__version__ = "0.2.5"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("just-buildit")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 import tempfile
 from pathlib import Path
