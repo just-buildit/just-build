@@ -27,6 +27,7 @@ def _cli(*args, cwd=FIXTURE) -> subprocess.CompletedProcess:
     )
 
 
+import tempfile
 import unittest
 
 
@@ -72,6 +73,28 @@ class TestCLIInspect(unittest.TestCase):
         r = _cli("inspect")
         self.assertIn("hello-0.1.0", r.stdout)
         self.assertIn(".whl", r.stdout)
+
+    def test_shows_repair_args_when_set(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            (Path(tmp) / "pyproject.toml").write_text(
+                '[project]\nname = "foo"\nversion = "0.1.0"\n'
+                '[tool.just-buildit]\nrepair = false\n'
+                'repair-args = ["--plat", "manylinux_2_28_x86_64"]\n'
+            )
+            r = _cli("inspect", cwd=tmp)
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("repair-args", r.stdout)
+        self.assertIn("manylinux_2_28_x86_64", r.stdout)
+
+    def test_omits_repair_args_line_when_not_set(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            (Path(tmp) / "pyproject.toml").write_text(
+                '[project]\nname = "foo"\nversion = "0.1.0"\n'
+                '[tool.just-buildit]\nrepair = false\n'
+            )
+            r = _cli("inspect", cwd=tmp)
+        self.assertEqual(r.returncode, 0)
+        self.assertNotIn("repair-args", r.stdout)
 
 
 class TestCLIBuild(unittest.TestCase):

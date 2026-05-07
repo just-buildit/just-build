@@ -27,6 +27,7 @@ class BuildConfig:
     version: str
     command: str | None                  # None = zero-config src/{package}/ default
     repair: str | Literal[False] | None  # None = auto-detect
+    repair_args: list[str] = field(default_factory=list)  # extra args passed to the repair command
     package: str | None = None           # package dir name; defaults to normalized project name
     exclude: list[str] = field(default_factory=list)
     editable_path: str | None = None     # src root for .pth-file editable installs
@@ -95,6 +96,13 @@ def load(project_root: Path) -> BuildConfig:
     else:
         repair = str(raw_repair)
 
+    raw_repair_args = jb.get("repair-args", [])
+    if isinstance(raw_repair_args, str):
+        import shlex
+        repair_args = shlex.split(raw_repair_args)
+    else:
+        repair_args = list(raw_repair_args)
+
     readme_text, readme_content_type = None, None
     raw_readme = project.get("readme")
     if raw_readme:
@@ -105,6 +113,7 @@ def load(project_root: Path) -> BuildConfig:
         version=version,
         command=command,
         repair=repair,
+        repair_args=repair_args,
         package=package,
         exclude=exclude,
         editable_path=editable_path,

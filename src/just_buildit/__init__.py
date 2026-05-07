@@ -145,6 +145,7 @@ def build_wheel(
             wheel_path=raw_wheel,
             wheel_dir=wheel_dir,
             repair_command=config.repair,
+            repair_args=config.repair_args or None,
         )
 
     return final_wheel.name

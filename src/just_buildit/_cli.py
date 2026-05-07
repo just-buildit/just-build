@@ -103,6 +103,9 @@ def _inspect() -> None:
         print(f"  repair:          auto → {auto or '(none for this platform)'}")
     else:
         print(f"  repair:          {config.repair}")
+    if config.repair_args:
+        import shlex
+        print(f"  repair-args:     {shlex.join(config.repair_args)}")
     print()
 
     # Predicted wheel filename

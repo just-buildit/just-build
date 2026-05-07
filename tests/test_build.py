@@ -303,6 +303,106 @@ class TestBuildEnv(unittest.TestCase):
         self.assertIn("delocate", cmd)
 
 
+class TestRepairArgs(unittest.TestCase):
+    """Verify repair-args config parsing and arg injection into run_repair."""
+
+    _meta = sys.modules["just_buildit._meta"]
+    _build = sys.modules["just_buildit._build"]
+
+    def _write_pyproject(self, tmp: str, extra: str = "") -> None:
+        (Path(tmp) / "pyproject.toml").write_text(
+            '[project]\nname = "foo"\nversion = "0.1.0"\n'
+            '[tool.just-buildit]\n' + extra
+        )
+
+    def test_repair_args_list_parsed(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            self._write_pyproject(tmp, 'repair-args = ["--plat", "manylinux_2_28_x86_64"]\n')
+            config = self._meta.load(Path(tmp))
+        self.assertEqual(config.repair_args, ["--plat", "manylinux_2_28_x86_64"])
+
+    def test_repair_args_string_parsed(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            self._write_pyproject(tmp, 'repair-args = "--plat manylinux_2_28_x86_64"\n')
+            config = self._meta.load(Path(tmp))
+        self.assertEqual(config.repair_args, ["--plat", "manylinux_2_28_x86_64"])
+
+    def test_repair_args_default_empty(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            (Path(tmp) / "pyproject.toml").write_text(
+                '[project]\nname = "foo"\nversion = "0.1.0"\n'
+            )
+            config = self._meta.load(Path(tmp))
+        self.assertEqual(config.repair_args, [])
+
+    def _fake_repair_run(self, extra_wheel_name="foo-0.1.0-cp312-cp312-manylinux_2_28_x86_64.whl"):
+        """Return (captured, fake_run) where fake_run mocks subprocess.run for repair."""
+        from unittest.mock import MagicMock
+        captured = {}
+
+        def fake_run(cmd, **kwargs):
+            captured["cmd"] = list(cmd)
+            w_idx = cmd.index("-w")
+            out_dir = Path(cmd[w_idx + 1])
+            (out_dir / extra_wheel_name).write_bytes(b"")
+            result = MagicMock()
+            result.returncode = 0
+            return result
+
+        return captured, fake_run
+
+    def test_run_repair_injects_args_before_wheel(self):
+        """Extra args appear between the repair command and the wheel path."""
+        from unittest.mock import patch
+
+        captured, fake_run = self._fake_repair_run()
+
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            wheel_dir = Path(tmp)
+            wheel_path = wheel_dir / "foo-0.1.0-cp312-cp312-linux_x86_64.whl"
+            wheel_path.write_bytes(b"")
+
+            with patch.object(self._build.subprocess, "run", side_effect=fake_run), \
+                 patch.object(self._build.shutil, "which", return_value="/usr/bin/patchelf"):
+                self._build.run_repair(
+                    wheel_path=wheel_path,
+                    wheel_dir=wheel_dir,
+                    repair_command="uvx auditwheel repair",
+                    repair_args=["--plat", "manylinux_2_28_x86_64"],
+                )
+
+        cmd = captured["cmd"]
+        self.assertIn("--plat", cmd)
+        plat_idx = cmd.index("--plat")
+        self.assertEqual(cmd[plat_idx + 1], "manylinux_2_28_x86_64")
+        wheel_idx = cmd.index(str(wheel_path))
+        self.assertLess(plat_idx, wheel_idx, "--plat must precede the wheel path")
+
+    def test_run_repair_no_extra_args(self):
+        """Without repair_args the command is just: <repair_cmd> <wheel> -w <dir>."""
+        from unittest.mock import patch
+
+        captured, fake_run = self._fake_repair_run()
+
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            wheel_dir = Path(tmp)
+            wheel_path = wheel_dir / "foo-0.1.0-cp312-cp312-linux_x86_64.whl"
+            wheel_path.write_bytes(b"")
+
+            with patch.object(self._build.subprocess, "run", side_effect=fake_run), \
+                 patch.object(self._build.shutil, "which", return_value="/usr/bin/patchelf"):
+                self._build.run_repair(
+                    wheel_path=wheel_path,
+                    wheel_dir=wheel_dir,
+                    repair_command="uvx auditwheel repair",
+                )
+
+        cmd = captured["cmd"]
+        # Expected: ["uvx", "auditwheel", "repair", "<wheel>", "-w", "<dir>"]
+        self.assertEqual(cmd[:3], ["uvx", "auditwheel", "repair"])
+        self.assertEqual(cmd[3], str(wheel_path))
+
+
 class TestErrorHandling(unittest.TestCase):
 
     def test_no_command_no_src_raises_file_not_found(self):

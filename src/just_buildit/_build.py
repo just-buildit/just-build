@@ -234,6 +234,7 @@ def run_repair(
     wheel_path: Path,
     wheel_dir: Path,
     repair_command: str | None | bool,
+    repair_args: list[str] | None = None,
 ) -> Path:
     """
     Run the wheel repair command. Returns path to the (possibly repaired) wheel.
@@ -273,7 +274,7 @@ def run_repair(
     # directory as the input wheel — on Windows this causes a PermissionError
     # when pip holds the source file open.
     with tempfile.TemporaryDirectory(dir=wheel_dir, prefix="_repair_") as repair_tmp:
-        cmd = shlex.split(repair_command) + [str(wheel_path), "-w", repair_tmp]
+        cmd = shlex.split(repair_command) + (repair_args or []) + [str(wheel_path), "-w", repair_tmp]
         print(f"just-buildit: repairing wheel: {shlex.join(cmd)}", flush=True)
 
         result = subprocess.run(cmd)
