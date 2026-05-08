@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.4] — 2026-05-07
+
+### Added
+
+- `repair-args` config option in `[tool.just-buildit]` — accepts a list or string of extra arguments passed to the wheel repair command (e.g. `--plat manylinux_2_28_x86_64` for `auditwheel repair`)
+
+---
+
 ## [0.3.3] — 2026-05-06
 
 ### Fixed
