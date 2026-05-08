@@ -9,6 +9,7 @@ Contract:
 
 Environment variables set for the build command:
   JUST_BUILDIT_NAME          extension module name (e.g. "hello")
+  JUST_BUILDIT_PYTHON        path to the running Python interpreter
   JUST_BUILDIT_INCLUDE_DIR   Python C header directory
   JUST_BUILDIT_OUTPUT_DIR    directory where the .so/.pyd must be placed
   JUST_BUILDIT_EXT_SUFFIX    full extension suffix (e.g. .cpython-312-x86_64-linux-gnu.so)
@@ -82,8 +83,12 @@ def _python_link_flags() -> list[str]:
     if (libs_dir / f"python{major}{minor}.lib").exists():
         return [f"-L{libs_dir}", f"-lpython{major}{minor}"]
 
-    # Last resort
-    return [f"-L{install_root}", f"-lpython{major}{minor}"]
+    searched = list(candidates) + [str(libs_dir)]
+    raise RuntimeError(
+        f"Could not find Python {major}.{minor} import library on Windows.\n\n"
+        "Searched:\n" + "\n".join(f"  {d}" for d in searched) + "\n\n"
+        "Install Python from python.org or MSYS2 to get a complete distribution."
+    )
 
 
 def _default_build(

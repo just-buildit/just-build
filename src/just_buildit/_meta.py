@@ -42,9 +42,6 @@ class BuildConfig:
     dependencies: list[str] = field(default_factory=list)   # project.dependencies → Requires-Dist
 
 
-_MISSING = object()
-
-
 def _read_readme(project_root: Path, raw: str | dict) -> tuple[str | None, str | None]:
     """Return (text, content_type) from a project.readme value."""
     if isinstance(raw, str):
@@ -88,13 +85,12 @@ def load(project_root: Path) -> BuildConfig:
     scripts = project.get("scripts", {})
     exclude = jb.get("exclude", [])
 
-    raw_repair = jb.get("repair", _MISSING)
-    if raw_repair is _MISSING:
+    if "repair" not in jb:
         repair = None  # auto-detect
-    elif raw_repair is False:
+    elif jb["repair"] is False:
         repair = False  # explicitly disabled
     else:
-        repair = str(raw_repair)
+        repair = str(jb["repair"])
 
     raw_repair_args = jb.get("repair-args", [])
     if isinstance(raw_repair_args, str):

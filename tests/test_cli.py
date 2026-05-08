@@ -3,8 +3,6 @@ CLI tests for just-buildit — exercises inspect, build, sdist, help, and error
 handling via subprocess, without requiring the package to be installed.
 """
 
-from __future__ import annotations
-
 import os
 import shutil
 import subprocess

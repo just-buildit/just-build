@@ -67,7 +67,12 @@ def build_editable(
     elif (project_root / "src").is_dir():
         editable_path = "src"
     else:
-        return build_wheel(wheel_directory, config_settings, metadata_directory)
+        raise RuntimeError(
+            "build_editable requires an editable source root but none was found.\n\n"
+            "Either put your sources in a src/ directory (auto-detected), or set:\n\n"
+            "  [tool.just-buildit]\n"
+            '  editable_path = "src"\n'
+        )
 
     # Write a .pth file pointing at the source tree.
     # No build command is run — the C extension must already be compiled in place.

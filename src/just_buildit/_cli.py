@@ -14,6 +14,9 @@ Commands:
   build [DIR]    Build wheel into DIR (default: dist/)
   sdist [DIR]    Build source distribution into DIR (default: dist/)
   help           Show this message
+
+Options:
+  -V, --version  Print version and exit
 """
 
 
@@ -21,6 +24,9 @@ def main() -> None:
     args = sys.argv[1:]
     if not args or args[0] in ("-h", "--help", "help"):
         print(_USAGE, end="")
+    elif args[0] in ("-V", "--version"):
+        from just_buildit import __version__
+        print(__version__)
     elif args[0] == "inspect":
         _inspect()
     elif args[0] == "build":

@@ -11,10 +11,6 @@ Tests:
   7. Missing src/{name}/ with no command → actionable FileNotFoundError
 """
 
-from __future__ import annotations
-
-import importlib
-import importlib.util
 import os
 import platform
 import subprocess
@@ -26,31 +22,12 @@ from pathlib import Path
 
 FIXTURE = Path(__file__).parent / "fixture"
 FIXTURE_NOCONFIG = Path(__file__).parent / "fixture_noconfig"
-JUST_BUILD = Path(__file__).parent.parent / "src" / "just_buildit"
+SRC = Path(__file__).parent.parent / "src"
 
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
-def _load_just_buildit():
-    """Import just_buildit from source without installation."""
-    for sub in ("_meta", "_build", "_wheel"):
-        sub_spec = importlib.util.spec_from_file_location(
-            f"just_buildit.{sub}", JUST_BUILD / f"{sub}.py"
-        )
-        sub_mod = importlib.util.module_from_spec(sub_spec)
-        sys.modules[f"just_buildit.{sub}"] = sub_mod
-        sub_spec.loader.exec_module(sub_mod)
-
-    spec = importlib.util.spec_from_file_location(
-        "just_buildit",
-        JUST_BUILD / "__init__.py",
-        submodule_search_locations=[str(JUST_BUILD)],
-    )
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules["just_buildit"] = mod
-    spec.loader.exec_module(mod)
-    return mod
-
-
-just_buildit = _load_just_buildit()
+import just_buildit
 
 
 class TestNoDependencies(unittest.TestCase):
@@ -62,11 +39,9 @@ class TestNoDependencies(unittest.TestCase):
 
 class TestBuildEditable(unittest.TestCase):
 
-    def test_no_src_dir_falls_back_to_build_wheel(self):
-        """Without editable_path and no src/ directory, build_editable() falls back to build_wheel."""
+    def test_no_src_dir_raises_runtime_error(self):
+        """Without editable_path and no src/ directory, build_editable() raises RuntimeError."""
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
-            # No src/ directory — auto-detect won't trigger, fallback to build_wheel.
-            # No command either → zero-config tries src/foo/ → FileNotFoundError proves fallback.
             (Path(tmp) / "pyproject.toml").write_text(
                 '[project]\nname = "foo"\nversion = "0.1.0"\n'
             )
@@ -75,7 +50,7 @@ class TestBuildEditable(unittest.TestCase):
             orig = os.getcwd()
             os.chdir(tmp)
             try:
-                with self.assertRaises(FileNotFoundError):
+                with self.assertRaises(RuntimeError):
                     just_buildit.build_editable(str(wheel_dir))
             finally:
                 os.chdir(orig)

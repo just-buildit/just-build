@@ -6,6 +6,7 @@ Includes all project files except build artifacts, VCS data, and caches.
 """
 
 import io
+import os
 import tarfile
 import time
 from pathlib import Path
@@ -19,21 +20,31 @@ _EXCLUDE_DIRS = frozenset({
 _EXCLUDE_SUFFIXES = frozenset({".pyc", ".pyo"})
 
 
+def _build_epoch() -> int:
+    """Return the timestamp to use for all archive entries.
+
+    Reads SOURCE_DATE_EPOCH from the environment if set; otherwise returns the
+    zip/tar minimum epoch (1980-01-01 00:00:00 UTC) for reproducible output.
+    """
+    raw = os.environ.get("SOURCE_DATE_EPOCH")
+    if raw is not None:
+        return int(raw)
+    return 315532800  # 1980-01-01 00:00:00 UTC
+
+
 def _collect_files(project_root: Path) -> list[Path]:
-    """Walk project_root and return source files to include in the sdist."""
+    """Walk project_root, pruning excluded dirs, and return source files for the sdist."""
     files = []
-    for path in sorted(project_root.rglob("*")):
-        if not path.is_file():
-            continue
-        rel = path.relative_to(project_root)
-        parts = rel.parts
-        if any(p in _EXCLUDE_DIRS for p in parts):
-            continue
-        if any(p.endswith(".egg-info") for p in parts):
-            continue
-        if path.suffix in _EXCLUDE_SUFFIXES:
-            continue
-        files.append(path)
+    for dirpath, dirs, filenames in os.walk(project_root, topdown=True):
+        dirs[:] = sorted(
+            d for d in dirs
+            if d not in _EXCLUDE_DIRS and not d.endswith(".egg-info")
+        )
+        for name in sorted(filenames):
+            path = Path(dirpath) / name
+            if path.suffix in _EXCLUDE_SUFFIXES:
+                continue
+            files.append(path)
     return files
 
 
@@ -58,7 +69,7 @@ def build_sdist(project_root: Path, sdist_dir: Path, config) -> Path:
         dependencies=config.dependencies or None,
     )
 
-    mtime = int(time.time())
+    mtime = _build_epoch()
 
     with tarfile.open(sdist_path, "w:gz") as tf:
         # PKG-INFO first (convention)
@@ -69,7 +80,12 @@ def build_sdist(project_root: Path, sdist_dir: Path, config) -> Path:
 
         for file_path in _collect_files(project_root):
             rel = file_path.relative_to(project_root)
-            tf.add(str(file_path), arcname=f"{top}/{rel}")
+            data = file_path.read_bytes()
+            ti = tarfile.TarInfo(name=f"{top}/{rel}")
+            ti.size = len(data)
+            ti.mtime = mtime
+            ti.mode = 0o644
+            tf.addfile(ti, io.BytesIO(data))
 
     print(f"just-buildit: wrote sdist -> {sdist_path}", flush=True)
     return sdist_path
