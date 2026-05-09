@@ -92,6 +92,12 @@ uvx just-buildit sdist     # build source distribution into dist/
 
 ---
 
+## Authors
+
+Matthew T. Hunter, Ph.D. and [Claude Code](https://claude.ai/code)
+
+---
+
 ## License
 
 MIT
