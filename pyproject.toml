@@ -12,6 +12,10 @@ version = "0.3.4"
 description = "The missing PEP 517 build backend for C extensions."
 readme = "README.md"
 requires-python = ">=3.11"
+authors = [
+    { name = "Matthew T. Hunter, Ph.D." },
+    { name = "Claude Code", email = "noreply@anthropic.com" },
+]
 dependencies = []
 keywords = [
     "pep517", "build-backend", "c-extension", "cmake", "meson",
