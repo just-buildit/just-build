@@ -15,6 +15,6 @@ build-backend = "just_buildit"
 command = "make"
 ```
 
-If, like us, you've struggled with or been dissatisfied by existing tools for building C extensions, this is for you. We'd love to hear how you're using it, what's working, and what isn't.
+If, like us, you've struggled with or been dissatisfied by existing tools for building C extensions, this is for you. This problem is [actively discussed in the Python community](https://discuss.python.org/t/adding-extension-module-examples-to-the-packaging-user-guide/105111/39) — just-buildit is our answer to it. We'd love to hear how you're using it, what's working, and what isn't.
 
 → [just-buildit.github.io/just-buildit](https://just-buildit.github.io/just-buildit/)
