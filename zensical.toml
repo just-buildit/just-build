@@ -16,6 +16,9 @@ nav = [
   { "Examples"              = "examples.md"                },
   { "Configuration"         = "configuration.md"           },
   { "Contributing"          = "contributing.md"            },
+  { "Posts" = [
+    { "Python C extensions shouldn't be this hard" = "posts/python-c-extensions-shouldnt-be-this-hard.md" },
+  ]},
 ]
 
 # ----------------------------------------------------------------------------
