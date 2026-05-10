@@ -19,10 +19,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install meson + ninja (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get install -y meson ninja-build
+        run: sudo apt-get install -y ninja-build && uv tool install meson
       - name: Install meson + ninja (macOS)
         if: runner.os == 'macOS'
-        run: brew install meson ninja
+        run: brew install ninja && uv tool install meson
       - run: uv run --no-project python -m unittest tests.test_build tests.test_examples tests.test_cli -v
 
   test-bazel:
