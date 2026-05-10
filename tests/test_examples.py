@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import platform
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -272,6 +273,123 @@ class TestNestedExample(unittest.TestCase):
         self.assertEqual(mod.blur(7), 3)
         self.assertEqual(mod.encode(10), 30)
         self.assertEqual(mod.encode(0), 0)
+
+
+class TestJustMakeitExample(unittest.TestCase):
+    """just-makeit scaffolding: scaffold a project, verify layout, build, import."""
+
+    # Files that must exist after `just-makeit new my_dsp --object gain ...`
+    _EXPECTED_FILES = [
+        ".just-makeit",
+        "CMakeLists.txt",
+        "Makefile",
+        "pyproject.toml",
+        "README.md",
+        "cmake/my-dsp.pc.in",
+        "native/inc/clib_common.h",
+        "native/inc/pyex_common.h",
+        "native/inc/my_dsp.h",
+        "native/inc/gain/gain_core.h",
+        "native/src/my_dsp_lib.c",
+        "native/src/gain/gain_core.c",
+        "native/src/gain/gain_ext.c",
+        "native/src/gain/CMakeLists.txt",
+        "native/tests/test_gain_core.c",
+        "native/benchmarks/bench_gain_core.c",
+        "src/my_dsp/__init__.py",
+        "src/my_dsp/gain.pyi",
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        if not shutil.which("just-makeit"):
+            raise unittest.SkipTest("just-makeit not installed")
+        missing = [t for t in ("cmake", "make") if not shutil.which(t)]
+        if missing:
+            raise unittest.SkipTest(f"required tools not found: {', '.join(missing)}")
+        if not shutil.which("cc") and not shutil.which("gcc") and not shutil.which("clang"):
+            raise unittest.SkipTest("no C compiler found")
+
+        cls._tmp = tempfile.mkdtemp(prefix="jb-makeit-")
+        cls._proj = Path(cls._tmp) / "my_dsp"
+        cls._wheel_dir = Path(cls._tmp) / "dist"
+        cls._wheel_dir.mkdir()
+
+        subprocess.run(
+            [
+                "just-makeit", "new", "my_dsp",
+                "--object", "gain",
+                "--state", "gain:double:1.0",
+            ],
+            cwd=cls._tmp,
+            check=True,
+        )
+        cls._wheel_name = _build_example(cls._proj, cls._wheel_dir)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls._tmp, ignore_errors=True)
+
+    def test_layout_key_files(self):
+        missing = [f for f in self._EXPECTED_FILES if not (self._proj / f).exists()]
+        self.assertEqual(missing, [], f"Missing generated files: {missing}")
+
+    def test_produces_whl_file(self):
+        self.assertTrue((self._wheel_dir / self._wheel_name).exists())
+
+    def test_wheel_is_valid_zip(self):
+        self.assertTrue(zipfile.is_zipfile(self._wheel_dir / self._wheel_name))
+
+    def test_wheel_contains_extension(self):
+        with zipfile.ZipFile(self._wheel_dir / self._wheel_name) as zf:
+            names = zf.namelist()
+        self.assertTrue(any(n.endswith((".so", ".pyd")) for n in names))
+
+    def test_import_gain(self):
+        mod = _unpack_and_import(self._wheel_dir, self._wheel_name, "my_dsp")
+        self.assertTrue(hasattr(mod, "Gain"), "my_dsp.Gain not found")
+        obj = mod.Gain(gain=1.0)
+        self.assertTrue(hasattr(obj, "step"))
+        self.assertTrue(hasattr(obj, "steps"))
+        self.assertTrue(hasattr(obj, "reset"))
+
+
+class TestMinGWExample(unittest.TestCase):
+    """examples/mingw/ — explicit Makefile build on Windows/MinGW UCRT64."""
+
+    @classmethod
+    def setUpClass(cls):
+        if platform.system() != "Windows":
+            raise unittest.SkipTest("MinGW example only runs on Windows")
+        missing = [t for t in ("make",) if not shutil.which(t)]
+        if missing:
+            raise unittest.SkipTest(f"required tools not found: {', '.join(missing)}")
+        if not shutil.which("cc") and not shutil.which("gcc"):
+            raise unittest.SkipTest("no C compiler found")
+        cls._tmp = tempfile.mkdtemp(prefix="jb-mingw-")
+        cls._wheel_dir = Path(cls._tmp) / "dist"
+        cls._wheel_dir.mkdir()
+        cls._wheel_name = _build_example(EXAMPLES / "mingw", cls._wheel_dir)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls._tmp, ignore_errors=True)
+
+    def test_produces_whl_file(self):
+        self.assertTrue((self._wheel_dir / self._wheel_name).exists())
+
+    def test_wheel_is_valid_zip(self):
+        self.assertTrue(zipfile.is_zipfile(self._wheel_dir / self._wheel_name))
+
+    def test_wheel_contains_extension(self):
+        with zipfile.ZipFile(self._wheel_dir / self._wheel_name) as zf:
+            names = zf.namelist()
+        self.assertTrue(any(n.endswith(".pyd") for n in names))
+
+    def test_extension_add(self):
+        mod = _unpack_and_import(self._wheel_dir, self._wheel_name, "add")
+        self.assertEqual(mod.add(2, 3), 5)
+        self.assertEqual(mod.add(-1, 1), 0)
 
 
 if __name__ == "__main__":

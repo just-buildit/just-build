@@ -17,6 +17,12 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install meson + ninja (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y meson ninja-build
+      - name: Install meson + ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install meson ninja
       - run: uv run --no-project python -m unittest tests.test_build tests.test_examples tests.test_cli -v
 
   test-bazel:
@@ -31,6 +37,19 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: sudo apt-get install -y bazel-bootstrap && sudo ln -sf /usr/bin/bazel-bootstrap /usr/local/bin/bazel
       - run: uv run --no-project python -m unittest tests.test_examples.TestBazelExample -v
+
+  test-just-makeit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv tool install just-makeit
+      - run: uv run --no-project python -m unittest tests.test_examples.TestJustMakeitExample -v
 
   test-windows-ucrt64:
     runs-on: windows-latest
