@@ -280,7 +280,7 @@ class TestJustMakeitExample(unittest.TestCase):
 
     # Files that must exist after `just-makeit new my_dsp --object gain ...`
     _EXPECTED_FILES = [
-        ".just-makeit",
+        "just-makeit.toml",
         "CMakeLists.txt",
         "Makefile",
         "pyproject.toml",

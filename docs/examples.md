@@ -212,7 +212,7 @@ repair = false
 
 ```makefile
 pyext:
-	meson setup _build --reconfigure -Dbuildtype=release
+	meson setup _build --wipe -Dbuildtype=release
 	meson compile -C _build
 	find _build -name "*$(JUST_BUILDIT_EXT_SUFFIX)" \
 		-exec cp {} $(JUST_BUILDIT_OUTPUT_DIR)/ \;
@@ -646,7 +646,7 @@ The generated layout:
 
 ```
 my_dsp/
-  .just-makeit              # project config
+  just-makeit.toml          # project config
   CMakeLists.txt
   Makefile
   pyproject.toml            # just-buildit backend, command = "make just-build"
