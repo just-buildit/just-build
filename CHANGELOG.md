@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.5] — 2026-05-10
+
+### Added
+
+- MinGW UCRT64 example (`examples/mingw/`) — explicit Makefile build demonstrating `JUST_BUILDIT_LIBS` placement after `-o` on Windows
+- `TestMinGWExample` (Windows-only) and `TestJustMakeitExample` integration tests
+- CI `test-just-makeit` job: scaffolds a project with `just-makeit new`, verifies layout, builds wheel, and smoke-tests `my_dsp.Gain`
+
+### Fixed
+
+- `examples/meson/meson.build`: added `build_by_default: true` — without it, `install: false` implies `build_by_default: false` since Meson 0.38, causing ninja to produce no output
+- `examples/meson/Makefile`: changed `--reconfigure` to `--wipe` so a clean configure is forced each build
+- CI `test` job: install meson via `uv tool install meson` instead of `apt-get install meson` — apt meson 1.3.x silently produces no build targets when `find_installation()` encounters a uv-managed Python path
+
+### Docs
+
+- `examples.md` overhauled: every section now shows actual runnable code from `examples/`, browse links, prerequisite lists, and `pip install` smoke-test commands
+- `environment-variables.md`: corrected `JUST_BUILDIT_LDFLAGS` for Windows/MinGW — it is `-shared` (not `-shared -fPIC`); `-fPIC` is meaningless on Windows x64
+- `examples.md` just-makeit section updated: `--component` → `--object`, config file is `just-makeit.toml`, layout tree reflects current scaffold output
+
+---
+
 ## [0.3.4] — 2026-05-07
 
 ### Added

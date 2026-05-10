@@ -12,7 +12,7 @@ just-buildit sets these before calling your command:
 
 | Variable | Linux | macOS | Windows (MinGW) |
 |---|---|---|---|
-| `JUST_BUILDIT_LDFLAGS` | `-shared -fPIC` | `-dynamiclib -undefined dynamic_lookup` | `-shared -fPIC` |
+| `JUST_BUILDIT_LDFLAGS` | `-shared -fPIC` | `-dynamiclib -undefined dynamic_lookup` | `-shared` |
 | `JUST_BUILDIT_LIBS` | — | — | `-L/ucrt64/lib -lpython3.14` |
 
 `$JUST_BUILDIT_OUTPUT_DIR` is the wheel content root. Write everything your
