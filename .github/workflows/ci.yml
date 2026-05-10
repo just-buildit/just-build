@@ -49,7 +49,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv tool install just-makeit
-      - run: uv run --no-project python -m unittest tests.test_examples.TestJustMakeitExample -v
+      - run: uv run --no-project --with pip --with numpy python -m unittest tests.test_examples.TestJustMakeitExample -v
 
   test-windows-ucrt64:
     runs-on: windows-latest

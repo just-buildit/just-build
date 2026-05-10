@@ -226,7 +226,7 @@ clean:
 ```python
 project('add', 'c')
 py = import('python').find_installation()
-py.extension_module('add', 'src/add.c', install: false)
+py.extension_module('add', 'src/add.c', install: false, build_by_default: true)
 ```
 
 **`src/add.c`** — same as the CMake example above.
