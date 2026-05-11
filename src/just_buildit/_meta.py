@@ -4,9 +4,9 @@ _meta.py — parse pyproject.toml for just-buildit.
 Extracts:
   - project.name
   - project.version
-  - project.description           (optional → METADATA Summary)
-  - project.readme                (optional → METADATA Description + content-type)
-  - project.requires-python       (optional → METADATA Requires-Python)
+  - project.description           (optional -> METADATA Summary)
+  - project.readme                (optional -> METADATA Description + content-type)
+  - project.requires-python       (optional -> METADATA Requires-Python)
   - tool.just-buildit.command        (optional; omit for zero-config src/{name}/ default)
   - tool.just-buildit.repair         (optional; auto-detected if omitted, False to skip)
   - tool.just-buildit.editable_path  (optional; src root for .pth editable installs; defaults to src/ if present)
@@ -31,15 +31,15 @@ class BuildConfig:
     package: str | None = None           # package dir name; defaults to normalized project name
     exclude: list[str] = field(default_factory=list)
     editable_path: str | None = None     # src root for .pth-file editable installs
-    scripts: dict[str, str] = field(default_factory=dict)  # project.scripts → entry_points.txt
+    scripts: dict[str, str] = field(default_factory=dict)  # project.scripts -> entry_points.txt
     summary: str | None = None
     readme_text: str | None = None
     readme_content_type: str | None = None
     requires_python: str | None = None
     classifiers: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)
-    urls: dict[str, str] = field(default_factory=dict)      # project.urls → Project-URL headers
-    dependencies: list[str] = field(default_factory=list)   # project.dependencies → Requires-Dist
+    urls: dict[str, str] = field(default_factory=dict)      # project.urls -> Project-URL headers
+    dependencies: list[str] = field(default_factory=list)   # project.dependencies -> Requires-Dist
 
 
 def _read_readme(project_root: Path, raw: str | dict) -> tuple[str | None, str | None]:
@@ -79,7 +79,7 @@ def load(project_root: Path) -> BuildConfig:
 
     jb = data.get("tool", {}).get("just-buildit", {})
 
-    command = jb.get("command") or None        # None → zero-config src/{package}/ default
+    command = jb.get("command") or None        # None -> zero-config src/{package}/ default
     package = jb.get("package") or None        # override package dir name for src/ lookup
     editable_path = jb.get("editable_path") or None  # src root for .pth editable installs
     scripts = project.get("scripts", {})

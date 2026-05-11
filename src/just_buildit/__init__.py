@@ -117,7 +117,7 @@ def build_wheel(
     with tempfile.TemporaryDirectory(prefix="just-buildit-") as tmp:
         output_dir = Path(tmp) / "output"
 
-        # Step 1: build → output_dir (the wheel content root)
+        # Step 1: build -> output_dir (the wheel content root)
         package = config.package or _normalize_name(config.name)
         output_dir = _build.run_build(
             name=config.name,

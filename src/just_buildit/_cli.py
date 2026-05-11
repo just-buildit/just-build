@@ -106,7 +106,7 @@ def _inspect() -> None:
         print(f"  repair:          disabled")
     elif config.repair is None:
         auto = _build._auto_repair_command()
-        print(f"  repair:          auto → {auto or '(none for this platform)'}")
+        print(f"  repair:          auto -> {auto or '(none for this platform)'}")
     else:
         print(f"  repair:          {config.repair}")
     if config.repair_args:

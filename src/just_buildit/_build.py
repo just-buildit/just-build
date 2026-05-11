@@ -248,9 +248,9 @@ def run_repair(
     Run the wheel repair command. Returns path to the (possibly repaired) wheel.
 
     repair_command:
-      None  → auto-detect by platform
-      False → skip repair
-      str   → use as-is
+      None  -> auto-detect by platform
+      False -> skip repair
+      str   -> use as-is
     """
     if repair_command is False:
         return wheel_path
