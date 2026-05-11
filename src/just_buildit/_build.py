@@ -118,13 +118,14 @@ def _default_build(
     c_files = sorted(src_dir.rglob("*.c"))
     if c_files:
         output = output_dir / f"{name}{ext_suffix}"
+        py_libs = _python_link_flags()
         cmd = [
             os.environ.get("CC", "cc"),
             *_ldflags(), "-O2",
             f"-I{include_dir}",
             *[str(f) for f in c_files],
             "-o", str(output),
-            *_python_link_flags(),
+            *py_libs,
         ]
         print(f"just-buildit: default build: {shlex.join(cmd)}", flush=True)
         result = subprocess.run(cmd, cwd=str(project_root))
@@ -168,7 +169,7 @@ def _make_env(*, name: str, output_dir: Path) -> tuple[dict[str, str], str]:
         "JUST_BUILDIT_OUTPUT_DIR":  str(output_dir),
         "JUST_BUILDIT_EXT_SUFFIX":  ext_suffix,
         "JUST_BUILDIT_LDFLAGS":     " ".join(_ldflags()),
-        "JUST_BUILDIT_LIBS":        " ".join(_python_link_flags()),
+        "JUST_BUILDIT_LIBS":        "",
     })
     return env, ext_suffix
 
@@ -212,6 +213,8 @@ def run_build(
             ext_suffix=ext_suffix,
         )
     else:
+        # Explicit command: populate JUST_BUILDIT_LIBS now that we know C is involved.
+        env["JUST_BUILDIT_LIBS"] = " ".join(_python_link_flags())
         print(f"just-buildit: running build command: {command}", flush=True)
         _print_env(env, ext_suffix)
 
