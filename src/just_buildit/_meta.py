@@ -8,6 +8,7 @@ Extracts:
   - project.readme                (optional -> METADATA Description + content-type)
   - project.requires-python       (optional -> METADATA Requires-Python)
   - tool.just-buildit.command        (optional; omit for zero-config src/{name}/ default)
+  - tool.just-buildit.pure           (optional; True = pure-Python: copy src/{name}/ verbatim, compile nothing)
   - tool.just-buildit.repair         (optional; auto-detected if omitted, False to skip)
   - tool.just-buildit.editable_path  (optional; src root for .pth editable installs; defaults to src/ if present)
 """
@@ -26,7 +27,8 @@ class BuildConfig:
     name: str
     version: str
     command: str | None                  # None = zero-config src/{package}/ default
-    repair: str | Literal[False] | None  # None = auto-detect
+    pure: bool = False                   # True = pure-Python: copy tree verbatim, compile nothing
+    repair: str | Literal[False] | None = None  # None = auto-detect
     repair_args: list[str] = field(default_factory=list)  # extra args passed to the repair command
     package: str | None = None           # package dir name; defaults to normalized project name
     exclude: list[str] = field(default_factory=list)
@@ -80,6 +82,12 @@ def load(project_root: Path) -> BuildConfig:
     jb = data.get("tool", {}).get("just-buildit", {})
 
     command = jb.get("command") or None        # None -> zero-config src/{package}/ default
+    pure = bool(jb.get("pure", False))          # pure-Python: copy tree verbatim, no compile
+    if pure and command:
+        raise ValueError(
+            "[tool.just-buildit] sets both 'pure' and 'command'.\n"
+            "'pure' means compile nothing — drop 'command', or drop 'pure'."
+        )
     package = jb.get("package") or None        # override package dir name for src/ lookup
     editable_path = jb.get("editable_path") or None  # src root for .pth editable installs
     scripts = project.get("scripts", {})
@@ -108,6 +116,7 @@ def load(project_root: Path) -> BuildConfig:
         name=name,
         version=version,
         command=command,
+        pure=pure,
         repair=repair,
         repair_args=repair_args,
         package=package,

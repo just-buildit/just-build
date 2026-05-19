@@ -5,6 +5,7 @@
 ```toml
 [tool.just-buildit]
 command       = "make"        # optional — omit for zero-config src/{package}/ build
+pure          = true          # optional — pure-Python: copy src/{package}/ verbatim, compile nothing
 package       = "my_package"  # optional — package dir name when it differs from project name
 editable_path = "src"         # optional — src root for fast .pth-file editable installs
 repair        = "uvx ..."     # optional — auto-detected by platform, or false to skip
@@ -15,6 +16,33 @@ exclude = [                   # optional — glob patterns relative to $JUST_BUI
 ```
 
 `__pycache__/`, `*.pyc`, and `*.pyo` are always excluded.
+
+---
+
+## Pure-Python packages
+
+A zero-config build compiles every `.c` file it finds under
+`src/{package}/`. That is wrong for a pure-Python package that *ships* `.c`
+files as data (sample sources, test fixtures, scaffolding templates) — they
+must land in the wheel untouched, not be handed to a compiler.
+
+Set `pure = true` to tell just-buildit the package is pure Python:
+
+```toml
+[tool.just-buildit]
+pure = true
+```
+
+With `pure = true`, just-buildit:
+
+- compiles nothing — the `.c` scan is skipped entirely;
+- copies the whole `src/{package}/` tree verbatim into the wheel, **keeping**
+  any `.c`/`.h` files as package data;
+- tags the wheel `py3-none-any` (`Root-Is-Purelib: true`);
+- skips the wheel-repair step — a pure wheel has no native binary to repair.
+
+`pure` and `command` are mutually exclusive: `pure` means "compile nothing",
+so a build command makes no sense alongside it.
 
 ---
 

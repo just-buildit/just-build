@@ -1,0 +1,17 @@
+[build-system]
+requires = ["just-buildit"]
+build-backend = "just_buildit"
+
+[project]
+name = "purepkg"
+version = "0.1.0"
+description = "Pure-Python fixture for just-buildit integration tests."
+requires-python = ">=3.11"
+
+[project.scripts]
+purepkg = "purepkg:main"
+
+[tool.just-buildit]
+# Pure-Python: copy src/purepkg/ verbatim, compile nothing — even though the
+# package ships a .c file (sample.c) as data.
+pure = true

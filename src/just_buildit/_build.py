@@ -99,11 +99,16 @@ def _default_build(
     project_root: Path,
     include_dir: str,
     ext_suffix: str,
+    pure: bool = False,
 ) -> bool:
     """
     Zero-config build: compile all *.c files from src/{package}/ and copy
     everything else (Python sources, data) to output_dir verbatim.
     Returns True if C extensions were compiled, False for pure-Python packages.
+
+    With pure=True, no compilation happens and the src/{package}/ tree is
+    copied verbatim — including any .c/.h files, which are treated as package
+    data rather than extension sources.
     """
     src_dir = project_root / "src" / package
     if not src_dir.is_dir():
@@ -115,7 +120,7 @@ def _default_build(
             f'  command = "make"\n'
         )
 
-    c_files = sorted(src_dir.rglob("*.c"))
+    c_files = [] if pure else sorted(src_dir.rglob("*.c"))
     if c_files:
         output = output_dir / f"{name}{ext_suffix}"
         py_libs = _python_link_flags()
@@ -131,14 +136,17 @@ def _default_build(
         result = subprocess.run(cmd, cwd=str(project_root))
         if result.returncode != 0:
             raise RuntimeError(f"Default build failed with exit code {result.returncode}")
+    elif pure:
+        print(f"just-buildit: pure-Python package — copying src/{package}/ verbatim", flush=True)
     else:
         print(f"just-buildit: no .c files in src/{package}/ — pure Python package", flush=True)
 
     # Copy all non-source files (Python sources, data, etc.) preserving tree structure.
-    # .c and .h stay in the source tree — they have no place in a wheel.
+    # .c and .h normally stay behind — they have no place in a wheel — but with
+    # pure=True they are kept as package data (e.g. bundled example sources).
     # Pure Python packages go into a {package}/ subdir so `import {package}` works.
     # C extension packages put files at the root alongside the compiled .so.
-    _skip = {".c", ".h"}
+    _skip: set[str] = set() if pure else {".c", ".h"}
     pkg_out = output_dir / package if not c_files else output_dir
     for src_file in src_dir.rglob("*"):
         if src_file.is_file() and src_file.suffix not in _skip:
@@ -192,10 +200,14 @@ def run_build(
     command: str | None,
     output_dir: Path,
     project_root: Path,
+    pure: bool = False,
 ) -> Path:
     """
     Run the build (user command or zero-config default) with JUST_BUILDIT_* env vars set.
     Returns output_dir — the wheel content root, containing all built artifacts.
+
+    pure=True forces the zero-config copy path and compiles nothing, even when
+    src/{package}/ contains .c files (they ship as package data).
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     env, ext_suffix = _make_env(name=name, output_dir=output_dir)
@@ -203,7 +215,7 @@ def run_build(
 
     needs_extension = True
 
-    if command is None:
+    if pure or command is None:
         needs_extension = _default_build(
             name=name,
             package=package,
@@ -211,6 +223,7 @@ def run_build(
             project_root=project_root,
             include_dir=include_dir,
             ext_suffix=ext_suffix,
+            pure=pure,
         )
     else:
         # Explicit command: populate JUST_BUILDIT_LIBS now that we know C is involved.

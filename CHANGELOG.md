@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.6] — 2026-05-19
+
+### Added
+
+- `pure` option in `[tool.just-buildit]` — declares a pure-Python package: just-buildit compiles nothing, copies the `src/{package}/` tree verbatim (keeping `.c`/`.h` files as package data), tags the wheel `py3-none-any`, and skips wheel repair. For pure-Python packages that ship `.c` sources as data, where the zero-config build would otherwise try to compile them.
+- `TestPureBuild` integration tests and a `fixture_pure/` test fixture (ships an uncompilable `sample.c` to prove pure builds never invoke the compiler)
+
+### Changed
+
+- `[tool.just-buildit]` rejects setting both `pure` and `command` — `pure` means "compile nothing", so a build command is contradictory
+
+---
+
 ## [0.3.5] — 2026-05-10
 
 ### Added

@@ -125,6 +125,7 @@ def build_wheel(
             command=config.command,
             output_dir=output_dir,
             project_root=project_root,
+            pure=config.pure,
         )
 
         # Step 2: assemble wheel from everything in output_dir
@@ -145,11 +146,13 @@ def build_wheel(
             scripts=config.scripts or None,
         )
 
-        # Step 3: repair (auditwheel / delocate / delvewheel)
+        # Step 3: repair (auditwheel / delocate / delvewheel).
+        # A pure-Python wheel is py3-none-any — there is no native binary to
+        # repair, so the repair step is skipped unconditionally.
         final_wheel = _build.run_repair(
             wheel_path=raw_wheel,
             wheel_dir=wheel_dir,
-            repair_command=config.repair,
+            repair_command=False if config.pure else config.repair,
             repair_args=config.repair_args or None,
         )
 

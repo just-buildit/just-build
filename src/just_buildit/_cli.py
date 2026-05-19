@@ -73,7 +73,11 @@ def _inspect() -> None:
     print()
 
     # Build mode
-    if config.command is None:
+    if config.pure:
+        pure = True
+        print(f"  build mode:      pure-Python  (src/{package}/ copied verbatim)")
+        print(f"  sources:         (none — compile nothing)")
+    elif config.command is None:
         src_dir = project_root / "src" / package
         c_files = sorted(src_dir.rglob("*.c")) if src_dir.is_dir() else []
         pure = not bool(c_files)
@@ -102,7 +106,9 @@ def _inspect() -> None:
     print()
 
     # Repair
-    if config.repair is False:
+    if config.pure:
+        print(f"  repair:          skipped (pure-Python wheel)")
+    elif config.repair is False:
         print(f"  repair:          disabled")
     elif config.repair is None:
         auto = _build._auto_repair_command()

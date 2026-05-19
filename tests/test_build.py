@@ -15,6 +15,7 @@ import os
 import platform
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import unittest
 import zipfile
@@ -22,6 +23,7 @@ from pathlib import Path
 
 FIXTURE = Path(__file__).parent / "fixture"
 FIXTURE_NOCONFIG = Path(__file__).parent / "fixture_noconfig"
+FIXTURE_PURE = Path(__file__).parent / "fixture_pure"
 SRC = Path(__file__).parent.parent / "src"
 
 if str(SRC) not in sys.path:
@@ -223,6 +225,86 @@ class TestDefaultBuild(unittest.TestCase):
                 sys.path.remove(str(install_dir))
                 if "hello" in sys.modules:
                     del sys.modules["hello"]
+
+
+class TestPureBuild(unittest.TestCase):
+    """pure = true — copy src/{name}/ verbatim, compile nothing.
+
+    The fixture ships a deliberately uncompilable sample.c as package data;
+    a pure build must keep it in the wheel and never hand it to a compiler.
+    """
+
+    def _build_pure(self, wheel_dir: Path) -> str:
+        orig = os.getcwd()
+        os.chdir(FIXTURE_PURE)
+        try:
+            return just_buildit.build_wheel(str(wheel_dir))
+        finally:
+            os.chdir(orig)
+
+    def test_produces_pure_tagged_wheel(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            wheel_dir = Path(tmp) / "dist"
+            wheel_dir.mkdir()
+            wheel_name = self._build_pure(wheel_dir)
+            self.assertTrue(wheel_name.endswith("-py3-none-any.whl"))
+            self.assertTrue((wheel_dir / wheel_name).exists())
+
+    def test_wheel_keeps_c_file_as_data(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            wheel_dir = Path(tmp) / "dist"
+            wheel_dir.mkdir()
+            wheel_name = self._build_pure(wheel_dir)
+            with zipfile.ZipFile(wheel_dir / wheel_name) as zf:
+                names = zf.namelist()
+            self.assertIn("purepkg/sample.c", names)
+            self.assertIn("purepkg/__init__.py", names)
+            ext_suffix = sysconfig.get_config_var("EXT_SUFFIX") or ".so"
+            self.assertFalse(
+                any(n.endswith(ext_suffix) for n in names),
+                "pure build must not produce a compiled extension",
+            )
+
+    def test_wheel_marked_purelib(self):
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            wheel_dir = Path(tmp) / "dist"
+            wheel_dir.mkdir()
+            wheel_name = self._build_pure(wheel_dir)
+            with zipfile.ZipFile(wheel_dir / wheel_name) as zf:
+                wheel_meta = zf.read(
+                    "purepkg-0.1.0.dist-info/WHEEL"
+                ).decode()
+            self.assertIn("Root-Is-Purelib: true", wheel_meta)
+
+    def test_importable_after_install(self):
+        with tempfile.TemporaryDirectory(
+            prefix="jb-test-", ignore_cleanup_errors=True
+        ) as tmp:
+            wheel_dir = Path(tmp) / "dist"
+            wheel_dir.mkdir()
+            install_dir = Path(tmp) / "site"
+            install_dir.mkdir()
+            wheel_name = self._build_pure(wheel_dir)
+            with zipfile.ZipFile(wheel_dir / wheel_name) as zf:
+                zf.extractall(install_dir)
+            sys.path.insert(0, str(install_dir))
+            try:
+                sys.modules.pop("purepkg", None)
+                import purepkg
+                self.assertEqual(purepkg.add(2, 3), 5)
+            finally:
+                sys.path.remove(str(install_dir))
+                sys.modules.pop("purepkg", None)
+
+    def test_pure_with_command_rejected(self):
+        from just_buildit import _meta
+        with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
+            (Path(tmp) / "pyproject.toml").write_text(
+                '[project]\nname = "foo"\nversion = "0.1.0"\n\n'
+                '[tool.just-buildit]\npure = true\ncommand = "make"\n'
+            )
+            with self.assertRaises(ValueError):
+                _meta.load(Path(tmp))
 
 
 class TestBuildEnv(unittest.TestCase):
