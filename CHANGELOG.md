@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.7] — 2026-05-23
+
+### Docs
+
+- `configuration.md`: added `repair-args` to the full reference block; added admonitions explaining package-name normalization, `.c`/`.h` exclusion behaviour, the `pure`+`command` conflict error, editable-install auto-detection, and the fallback-to-full-build warning
+- `environment-variables.md`: split into "set by" and "read by" sections; added `CC` and `SOURCE_DATE_EPOCH` to the "read by" table; added admonitions for output-directory usage, link-order pitfall, `CC` override tip, and reproducible-builds note; center-aligned value columns in the link-flags table
+- `examples.md`: updated just-makeit section file tree to match v0.13.7 scaffold output (added Doxyfile, zensical.toml, docs/, cmake config files, benchmarks, jm_bench.h, `__init__.py` files); noted `jm apply` regeneration step
+- `posts/python-c-extensions-shouldnt-be-this-hard.md`: corrected `--component` → `--object` in both code examples
+- `zensical.toml`: removed explicit `markdown_extensions` override that was shadowing Zensical's full default set — admonitions, `attr_list`, `pymdownx.details`, and all other defaults now apply correctly
+
+---
+
 ## [0.3.6] — 2026-05-19
 
 ### Added
