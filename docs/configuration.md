@@ -18,16 +18,21 @@ exclude = [                   # optional — glob patterns relative to $JUST_BUI
 
 `__pycache__/`, `*.pyc`, and `*.pyo` are always excluded.
 
-**`package` normalization:** if `package` is omitted, the package directory
-name is derived from `[project] name` by replacing runs of non-alphanumeric
-characters with underscores and lower-casing — the same rule Python uses for
-import names. A project named `my-lib` will look for `src/my_lib/`.
+!!! note "Package directory name"
 
-**`.c` and `.h` files:** in a normal (non-`pure`) build, `.c` and `.h` files
-are **excluded from the wheel** — they compile into the extension and have no
-place in the distribution. Set `pure = true` to keep them as package data
-(useful when shipping C source templates or scaffolding examples alongside
-Python code).
+    If `package` is omitted, the directory name is derived from
+    `[project] name` by replacing runs of non-alphanumeric characters with
+    underscores and lower-casing — the same rule Python uses for import
+    names. A project named `my-lib` will look for `src/my_lib/`.
+
+!!! info "`.c` and `.h` files in the wheel"
+
+    In a normal (non-`pure`) build, `.c` and `.h` files are **excluded from
+    the wheel** — they compile into the extension and have no place in the
+    distribution.
+
+    Set `pure = true` to keep them as package data (useful when shipping C
+    source templates or scaffolding examples alongside Python code).
 
 ---
 
@@ -47,18 +52,23 @@ pure = true
 
 With `pure = true`, just-buildit:
 
-- compiles nothing — the `.c` scan is skipped entirely;
+- compiles nothing — the `.c` scan is skipped entirely
 - copies the whole `src/{package}/` tree verbatim into the wheel, **keeping**
-  any `.c`/`.h` files as package data;
-- tags the wheel `py3-none-any` (`Root-Is-Purelib: true`);
-- skips the wheel-repair step — a pure wheel has no native binary to repair.
+  any `.c`/`.h` files as package data
+- tags the wheel `py3-none-any` (`Root-Is-Purelib: true`)
+- skips the wheel-repair step — a pure wheel has no native binary to repair
 
-`pure` and `command` are mutually exclusive — setting both is an error:
+!!! failure "Cannot combine `pure` and `command`"
 
-```
-[tool.just-buildit] sets both 'pure' and 'command'.
-'pure' means compile nothing — drop 'command', or drop 'pure'.
-```
+    Setting both is a configuration error:
+
+    ```
+    [tool.just-buildit] sets both 'pure' and 'command'.
+    'pure' means compile nothing — drop 'command', or drop 'pure'.
+    ```
+
+    `pure` means "compile nothing and copy the source tree verbatim."
+    A build `command` is only needed when there is something to compile.
 
 ---
 
@@ -66,19 +76,19 @@ With `pure = true`, just-buildit:
 
 just-buildit automatically runs the right repair tool for your platform:
 
-| Platform | Tool |
-|---|---|
-| Linux | `uvx auditwheel repair` |
-| macOS | `uvx --from delocate delocate-wheel` |
-| Windows / MinGW | `uvx delvewheel repair` |
+| Platform | Auto-detected command |
+|:---|:---|
+| **Linux** | `uvx auditwheel repair` |
+| **macOS** | `uvx --from delocate delocate-wheel` |
+| **Windows / MinGW** | `uvx delvewheel repair` |
 
 Override or disable repair in your config:
 
 ```toml
 [tool.just-buildit]
 command = "make"
-repair  = "uvx auditwheel repair"          # override the auto-detected command
-# repair = false                           # skip repair entirely
+repair  = "uvx auditwheel repair"   # override the auto-detected command
+# repair = false                    # skip repair entirely
 ```
 
 Pass extra arguments without replacing the whole command using `repair-args`.
@@ -104,15 +114,16 @@ repair-args = "--plat manylinux_2_28_x86_64 --strip"
 tree — no build command is run. Python finds your source directly. The C
 extension must be compiled in place once (e.g. `make`) before importing.
 
-**Auto-detection:** if `editable_path` is not set and a `src/` directory
-exists at the project root, just-buildit uses `src/` automatically — no
-config needed for the standard src-layout.
+!!! tip "Standard src-layout: zero config needed"
 
-```toml
-[tool.just-buildit]
-command = "make"
-# editable_path = "src"   ← omit this; auto-detected when src/ exists
-```
+    If `editable_path` is not set and a `src/` directory exists at the
+    project root, just-buildit uses it automatically:
+
+    ```toml
+    [tool.just-buildit]
+    command = "make"
+    # editable_path = "src"  ← omit; auto-detected when src/ exists
+    ```
 
 Set `editable_path` explicitly only when your source root differs from `src/`:
 
@@ -122,5 +133,8 @@ command       = "make"
 editable_path = "lib"     # non-standard layout
 ```
 
-If neither `editable_path` is set nor `src/` exists, `pip install -e .`
-falls back to a full wheel build.
+!!! warning "Fallback to full wheel build"
+
+    If neither `editable_path` is set nor a `src/` directory exists,
+    `pip install -e .` falls back to a full wheel build — slower and
+    not truly editable for Python changes.

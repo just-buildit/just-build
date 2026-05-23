@@ -4,39 +4,90 @@
 
 just-buildit sets these before calling your build command:
 
-| Variable | Example value | Description |
+| Variable | Example value | Purpose |
 |---|---|---|
-| `JUST_BUILDIT_NAME` | `mylib` | Normalized package name (used to name the output file) |
-| `JUST_BUILDIT_PYTHON` | `/usr/bin/python3.12` | Path to the Python interpreter running the build |
-| `JUST_BUILDIT_INCLUDE_DIR` | `/usr/include/python3.12` | Python header directory; pass as `-I$JUST_BUILDIT_INCLUDE_DIR` |
-| `JUST_BUILDIT_OUTPUT_DIR` | `/tmp/just-buildit-xyz/output` | Wheel content root — write all output here |
-| `JUST_BUILDIT_EXT_SUFFIX` | `.cpython-312-x86_64-linux-gnu.so` | Platform extension suffix; use as the filename suffix for `.so`/`.pyd` files |
+| `JUST_BUILDIT_NAME` | `mylib` | Normalized package name — use as the base of your output filename |
+| `JUST_BUILDIT_PYTHON` | `/usr/bin/python3.12` | Absolute path to the Python interpreter running the build |
+| `JUST_BUILDIT_INCLUDE_DIR` | `/usr/include/python3.12` | Python header directory — pass as `-I$JUST_BUILDIT_INCLUDE_DIR` |
+| `JUST_BUILDIT_OUTPUT_DIR` | `/tmp/just-buildit-xyz/output` | **Wheel content root** — write all output here |
+| `JUST_BUILDIT_EXT_SUFFIX` | `.cpython-312-x86_64-linux-gnu.so` | Full platform extension suffix for `.so` / `.pyd` naming |
+
+!!! info "Output directory"
+
+    `$JUST_BUILDIT_OUTPUT_DIR` is packaged verbatim into the wheel.
+    Write every file your package needs there — extensions, pure-Python
+    sources, data files — and preserve the directory structure you want
+    users to import.
+
+---
 
 ### Platform-specific link flags
 
 | Variable | Linux | macOS | Windows (MinGW) |
-|---|---|---|---|
+|:---|:---:|:---:|:---:|
 | `JUST_BUILDIT_LDFLAGS` | `-shared -fPIC` | `-dynamiclib -undefined dynamic_lookup` | `-shared` |
 | `JUST_BUILDIT_LIBS` | *(empty)* | *(empty)* | `-L/ucrt64/lib -lpython3.14` |
 
 `JUST_BUILDIT_LIBS` is only non-empty when a custom `command` is configured
-**and** the platform is Windows/MinGW (where Python's import library must be
-linked explicitly). On Linux and macOS it is always empty — linker flags in
-`JUST_BUILDIT_LDFLAGS` are sufficient. Always place `$JUST_BUILDIT_LIBS`
-**after** the output file (`-o`) in your linker invocation; GNU `ld`'s
-`--as-needed` will silently drop it otherwise.
+**and** the platform is Windows/MinGW — where Python's import library must be
+linked explicitly. On Linux and macOS it is always empty; `JUST_BUILDIT_LDFLAGS`
+is sufficient.
 
-`$JUST_BUILDIT_OUTPUT_DIR` is the wheel content root. Write everything your
-wheel needs there — extensions, Python sources, data files. just-buildit
-packages the entire directory verbatim, preserving structure.
+!!! warning "Link order on Linux and macOS"
+
+    Always place `$JUST_BUILDIT_LIBS` **after** the output file (`-o`) in
+    your linker invocation:
+
+    ```makefile
+    # CORRECT — library after the object file
+    $(CC) $(JUST_BUILDIT_LDFLAGS) -I$(JUST_BUILDIT_INCLUDE_DIR) \
+        src/mylib.c -o $(TARGET) $(JUST_BUILDIT_LIBS)
+
+    # WRONG — library before the object file (ld drops it silently)
+    $(CC) $(JUST_BUILDIT_LDFLAGS) $(JUST_BUILDIT_LIBS) \
+        -I$(JUST_BUILDIT_INCLUDE_DIR) src/mylib.c -o $(TARGET)
+    ```
+
+    GNU `ld` uses `--as-needed` by default on Debian/Ubuntu; any library
+    that appears before the object files that reference it is silently
+    dropped. This is a no-op on Linux/macOS (where `JUST_BUILDIT_LIBS` is
+    empty anyway), but the ordering habit matters on Windows/MinGW.
 
 ---
 
 ## Variables read by just-buildit
 
-These are not set by just-buildit, but are read from the environment if present:
+These are **not** set by just-buildit — they are read from the environment
+if already present.
 
-| Variable | Default | Description |
-|---|---|---|
-| `CC` | `cc` | C compiler used for zero-config builds (no `command` set). Override to select a specific compiler: `CC=gcc pip install .` |
-| `SOURCE_DATE_EPOCH` | *(current time)* | Unix timestamp for reproducible wheel and sdist builds. Set to a fixed value to make archive timestamps deterministic. Standard [build-reproducibility](https://reproducible-builds.org/docs/source-date-epoch/) env var. |
+| Variable | Default | Effect |
+|:---|:---:|---|
+| `CC` | `cc` | C compiler for zero-config builds (no `command` set) |
+| `SOURCE_DATE_EPOCH` | *(current time)* | Unix timestamp clamped into wheel and sdist archive entries |
+
+!!! tip "Selecting the C compiler"
+
+    Override `CC` to use a specific compiler without changing any config:
+
+    ```sh
+    CC=gcc pip install .
+    CC=clang pip install .
+    ```
+
+    This only affects **zero-config** builds (no `command` in
+    `[tool.just-buildit]`). Custom-command builds receive no `CC` injection —
+    your Makefile or CMake handles compiler selection directly.
+
+!!! info "Reproducible builds"
+
+    Set `SOURCE_DATE_EPOCH` to a fixed Unix timestamp to make wheel and sdist
+    archives byte-for-byte identical across builds:
+
+    ```sh
+    SOURCE_DATE_EPOCH=1700000000 pip wheel .
+    ```
+
+    This follows the [Reproducible Builds](https://reproducible-builds.org/docs/source-date-epoch/)
+    standard and is respected by most build backends and archive tools.
+    Both `pip wheel` and `python -m build` propagate it automatically when
+    they detect it in the environment.
