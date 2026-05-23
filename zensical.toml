@@ -74,7 +74,3 @@ link = "https://github.com/just-buildit/just-buildit"
 icon = "fontawesome/brands/python"
 link = "https://pypi.org/project/just-buildit/"
 
-[project.markdown_extensions.pymdownx.superfences]
-custom_fences = [
-  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
-]
