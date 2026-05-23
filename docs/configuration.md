@@ -9,6 +9,7 @@ pure          = true          # optional — pure-Python: copy src/{package}/ ve
 package       = "my_package"  # optional — package dir name when it differs from project name
 editable_path = "src"         # optional — src root for fast .pth-file editable installs
 repair        = "uvx ..."     # optional — auto-detected by platform, or false to skip
+repair-args   = ["--plat", "manylinux_2_28_x86_64"]  # optional — extra args appended to the repair command
 exclude = [                   # optional — glob patterns relative to $JUST_BUILDIT_OUTPUT_DIR
     "mypkg/tests/**",
     "mypkg/bench/**",
@@ -61,8 +62,23 @@ Override or disable repair in your config:
 ```toml
 [tool.just-buildit]
 command = "make"
-repair = "uvx auditwheel repair --plat manylinux_2_28_x86_64"  # custom
-# repair = false  # skip entirely
+repair  = "uvx auditwheel repair"          # override the auto-detected command
+# repair = false                           # skip repair entirely
+```
+
+Pass extra arguments without replacing the whole command using `repair-args`.
+The args are appended after the wheel path:
+
+```toml
+[tool.just-buildit]
+command     = "make"
+repair-args = ["--plat", "manylinux_2_28_x86_64"]
+```
+
+Accepts either a list of strings or a single space-separated string:
+
+```toml
+repair-args = "--plat manylinux_2_28_x86_64 --strip"
 ```
 
 ---

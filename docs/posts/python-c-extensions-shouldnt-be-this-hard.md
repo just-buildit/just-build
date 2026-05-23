@@ -72,7 +72,7 @@ a complete, tested, production-ready C extension project:
 pip install just-makeit
 
 just-makeit new my_dsp \
-    --component fir_filter \
+    --object fir_filter \
     --state "coeffs:float[16]" \
     --state "delay:float _Complex[16]" \
     --state "gain:float:1.0"
@@ -144,7 +144,7 @@ its layer.
 
 ```sh
 pip install just-makeit
-just-makeit new my_project --component engine --state gain:double:1.0
+just-makeit new my_project --object engine --state gain:double:1.0
 cd my_project && make && make test
 ```
 
