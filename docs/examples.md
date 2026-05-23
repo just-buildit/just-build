@@ -646,35 +646,49 @@ The generated layout:
 
 ```
 my_dsp/
-  just-makeit.toml          # project config
+  just-makeit.toml            # project config — single source of truth
   CMakeLists.txt
   Makefile
-  pyproject.toml            # just-buildit backend, command = "make just-build"
+  pyproject.toml              # just-buildit backend, command = "make just-build"
   README.md
+  Doxyfile                    # Doxygen config (pre-configured)
+  zensical.toml               # docs scaffolding
+  compile_commands.json       # clangd / IDE support
   cmake/
-    my-dsp.pc.in            # pkg-config template
+    my-dsp.pc.in              # pkg-config template
+    my_dsp-config.cmake.in    # CMake find_package support
+  docs/
+    index.md
+    api.md
   native/
     inc/
-      clib_common.h         # shared C types
-      pyex_common.h         # Python extension helpers
-      my_dsp.h              # umbrella header
+      clib_common.h           # shared C types
+      pyex_common.h           # Python extension helpers
+      my_dsp.h                # umbrella header
       gain/
-        gain_core.h         # C API (state struct, create/destroy/step/reset)
+        gain_core.h           # C API (state struct, create/destroy/step/reset)
     src/
-      my_dsp_lib.c          # library version stub
+      my_dsp_lib.c            # library version stub
       gain/
-        gain_core.c         # algorithm
-        gain_ext.c          # Python binding
+        gain_core.c           # algorithm  ← implement step() here
+        gain_ext.c            # Python binding  ← do not edit
         CMakeLists.txt
     tests/
-      test_gain_core.c
+      test_gain_core.c        # CTest lifecycle test
     benchmarks/
-      bench_gain_core.c
+      bench_gain_core.c       # C timing benchmark
+      jm_bench.h              # header-only bench stats library
+  benchmarks/
+    history/                  # dated JSON snapshots (git-ignored locally)
   src/my_dsp/
     __init__.py
-    gain.pyi
+    gain.pyi                  # type stub (regenerated on every mutation)
     tests/
-      test_gain.py
+      __init__.py
+      test_gain.py            # pytest suite
+    benchmarks/
+      __init__.py
+      bench_gain.py           # Python throughput benchmark
 ```
 
 The generated `pyproject.toml` uses just-buildit with no extra work:
@@ -688,4 +702,13 @@ build-backend = "just_buildit"
 command = "make just-build"
 ```
 
-Add a new object at any time with `just-makeit object <name>`. Add state variables to an existing object with `just-makeit add --state name:type[:default]`. just-buildit remains agnostic to how many objects exist — it packages whatever `make just-build` writes to `$JUST_BUILDIT_OUTPUT_DIR`.
+Add a new object at any time with `just-makeit object <name>`. Add state
+variables to an existing object with `just-makeit add --state
+name:type[:default]`. just-buildit remains agnostic to how many objects
+exist — it packages whatever `make just-build` writes to
+`$JUST_BUILDIT_OUTPUT_DIR`.
+
+Use `just-makeit apply` to materialise a project from a TOML manifest
+alone — useful for CI templates and composing projects declaratively. See
+the [just-makeit docs](https://just-buildit.github.io/just-makeit/) for
+the full reference.
