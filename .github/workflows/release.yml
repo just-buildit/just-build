@@ -17,7 +17,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: uv run --no-project python -m unittest tests.test_build tests.test_examples tests.test_cli -v
+      - run: uv run --no-project python -m unittest tests.test_build tests.test_examples tests.test_cli tests.test_metadata -v
 
   test-windows-ucrt64:
     runs-on: windows-latest
@@ -45,7 +45,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: sudo apt-get install -y bazel-bootstrap && sudo ln -sf /usr/bin/bazel-bootstrap /usr/local/bin/bazel
+      - run: sudo apt-get update && sudo apt-get install -y bazel-bootstrap && sudo ln -sf /usr/bin/bazel-bootstrap /usr/local/bin/bazel
       - run: uv run --no-project python -m unittest tests.test_examples.TestBazelExample -v
 
   build:
