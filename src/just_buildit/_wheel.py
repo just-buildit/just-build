@@ -78,6 +78,19 @@ def _sha256_record(data: bytes) -> str:
     return "sha256=" + base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
 
 
+def _format_contact(person: dict[str, str], header: str) -> str | None:
+    """Return a single METADATA contact header line, or None if the dict is empty."""
+    name = person.get("name", "").strip()
+    email = person.get("email", "").strip()
+    if name and email:
+        return f"{header}-email: {name} <{email}>"
+    if name:
+        return f"{header}: {name}"
+    if email:
+        return f"{header}-email: {email}"
+    return None
+
+
 def _metadata_bytes(
     name: str,
     version: str,
@@ -89,6 +102,11 @@ def _metadata_bytes(
     keywords: list[str] | None = None,
     urls: dict[str, str] | None = None,
     dependencies: list[str] | None = None,
+    license_expression: str | None = None,
+    license_files: list[str] | None = None,
+    authors: list[dict[str, str]] | None = None,
+    maintainers: list[dict[str, str]] | None = None,
+    optional_dependencies: dict[str, list[str]] | None = None,
 ) -> bytes:
     lines = [
         "Metadata-Version: 2.1",
@@ -97,6 +115,8 @@ def _metadata_bytes(
     ]
     if summary:
         lines.append(f"Summary: {summary}")
+    if license_expression:
+        lines.append(f"License: {license_expression}")
     if requires_python:
         lines.append(f"Requires-Python: {requires_python}")
     for classifier in classifiers or []:
@@ -105,8 +125,22 @@ def _metadata_bytes(
         lines.append(f"Keywords: {','.join(keywords)}")
     for label, url in (urls or {}).items():
         lines.append(f"Project-URL: {label}, {url}")
+    for person in authors or []:
+        line = _format_contact(person, "Author")
+        if line:
+            lines.append(line)
+    for person in maintainers or []:
+        line = _format_contact(person, "Maintainer")
+        if line:
+            lines.append(line)
     for dep in dependencies or []:
         lines.append(f"Requires-Dist: {dep}")
+    for extra, extra_deps in (optional_dependencies or {}).items():
+        lines.append(f"Provides-Extra: {extra}")
+        for dep in extra_deps:
+            lines.append(f'Requires-Dist: {dep} ; extra == "{extra}"')
+    for lf in license_files or []:
+        lines.append(f"License-File: {lf}")
     if readme_content_type:
         lines.append(f"Description-Content-Type: {readme_content_type}")
     lines.append("")  # blank line before body
@@ -144,6 +178,11 @@ def _write_dist_info(
     keywords: list[str] | None = None,
     urls: dict[str, str] | None = None,
     dependencies: list[str] | None = None,
+    license_expression: str | None = None,
+    license_files: list[str] | None = None,
+    authors: list[dict[str, str]] | None = None,
+    maintainers: list[dict[str, str]] | None = None,
+    optional_dependencies: dict[str, list[str]] | None = None,
     scripts: dict[str, str] | None = None,
 ) -> Path:
     """Write a .dist-info directory for prepare_metadata_for_build_wheel."""
@@ -161,6 +200,11 @@ def _write_dist_info(
         keywords=keywords,
         urls=urls,
         dependencies=dependencies,
+        license_expression=license_expression,
+        license_files=license_files,
+        authors=authors,
+        maintainers=maintainers,
+        optional_dependencies=optional_dependencies,
     ))
     (dist_info / "WHEEL").write_bytes(
         _wheel_meta_bytes(_python_tag(), _abi_tag(), _platform_tag())
@@ -185,6 +229,11 @@ def build_wheel(
     keywords: list[str] | None = None,
     urls: dict[str, str] | None = None,
     dependencies: list[str] | None = None,
+    license_expression: str | None = None,
+    license_files: list[str] | None = None,
+    authors: list[dict[str, str]] | None = None,
+    maintainers: list[dict[str, str]] | None = None,
+    optional_dependencies: dict[str, list[str]] | None = None,
     scripts: dict[str, str] | None = None,
 ) -> Path:
     """
@@ -228,6 +277,11 @@ def build_wheel(
         keywords=keywords,
         urls=urls,
         dependencies=dependencies,
+        license_expression=license_expression,
+        license_files=license_files,
+        authors=authors,
+        maintainers=maintainers,
+        optional_dependencies=optional_dependencies,
     )
     wheel_meta = _wheel_meta_bytes(py_tag, abi_tag, plat_tag, pure=pure)
     entry_points = _entry_points_bytes(scripts) if scripts else None

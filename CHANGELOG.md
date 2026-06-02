@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.8] — 2026-06-02
+
+### Fixed
+
+- Wheels and sdists were missing `Requires-Dist`, `Provides-Extra`, `License`,
+  `Author`, `Maintainer`, and `License-File` headers — `license`, `authors`,
+  `maintainers`, and `optional-dependencies` from `[project]` were parsed by
+  `_meta.load` but never wired through to `_metadata_bytes`. All six header
+  types now appear correctly in built wheel and sdist METADATA.
+- Added `tests/test_metadata.py` — 54 unit and integration tests covering every
+  PEP 621 metadata field that just-buildit maps to wheel METADATA.
+
+---
+
 ## [0.3.7] — 2026-05-23
 
 ### Docs

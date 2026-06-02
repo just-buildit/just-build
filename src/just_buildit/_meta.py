@@ -7,6 +7,11 @@ Extracts:
   - project.description           (optional -> METADATA Summary)
   - project.readme                (optional -> METADATA Description + content-type)
   - project.requires-python       (optional -> METADATA Requires-Python)
+  - project.license               (optional -> METADATA License / License-File)
+  - project.authors               (optional -> METADATA Author / Author-email)
+  - project.maintainers           (optional -> METADATA Maintainer / Maintainer-email)
+  - project.dependencies          (optional -> METADATA Requires-Dist)
+  - project.optional-dependencies (optional -> METADATA Provides-Extra + Requires-Dist)
   - tool.just-buildit.command        (optional; omit for zero-config src/{name}/ default)
   - tool.just-buildit.pure           (optional; True = pure-Python: copy src/{name}/ verbatim, compile nothing)
   - tool.just-buildit.repair         (optional; auto-detected if omitted, False to skip)
@@ -33,15 +38,21 @@ class BuildConfig:
     package: str | None = None           # package dir name; defaults to normalized project name
     exclude: list[str] = field(default_factory=list)
     editable_path: str | None = None     # src root for .pth-file editable installs
-    scripts: dict[str, str] = field(default_factory=dict)  # project.scripts -> entry_points.txt
+    scripts: dict[str, str] = field(default_factory=dict)
     summary: str | None = None
     readme_text: str | None = None
     readme_content_type: str | None = None
     requires_python: str | None = None
     classifiers: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)
-    urls: dict[str, str] = field(default_factory=dict)      # project.urls -> Project-URL headers
-    dependencies: list[str] = field(default_factory=list)   # project.dependencies -> Requires-Dist
+    urls: dict[str, str] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
+    # PEP 621 author/maintainer/license/extras
+    license_expression: str | None = None   # project.license string or {text=...}
+    license_files: list[str] = field(default_factory=list)  # project.license {file=...}
+    authors: list[dict[str, str]] = field(default_factory=list)
+    maintainers: list[dict[str, str]] = field(default_factory=list)
+    optional_dependencies: dict[str, list[str]] = field(default_factory=dict)
 
 
 def _read_readme(project_root: Path, raw: str | dict) -> tuple[str | None, str | None]:
@@ -59,6 +70,28 @@ def _read_readme(project_root: Path, raw: str | dict) -> tuple[str | None, str |
     else:
         text = raw.get("text")
     return text, content_type
+
+
+def _parse_license(
+    project: dict,
+) -> tuple[str | None, list[str]]:
+    """Return (license_expression, license_files) from the project table.
+
+    Handles three PEP 621 forms:
+    - String: ``license = "MIT"`` -> expression "MIT", no files.
+    - Dict with text: ``license = {text = "MIT"}`` -> expression "MIT", no files.
+    - Dict with file: ``license = {file = "LICENSE"}`` -> no expression, ["LICENSE"].
+    """
+    raw = project.get("license")
+    if raw is None:
+        return None, []
+    if isinstance(raw, str):
+        return raw, []
+    if isinstance(raw, dict):
+        expr = raw.get("text") or None
+        files = [raw["file"]] if "file" in raw else []
+        return expr, files
+    return None, []
 
 
 def load(project_root: Path) -> BuildConfig:
@@ -112,6 +145,8 @@ def load(project_root: Path) -> BuildConfig:
     if raw_readme:
         readme_text, readme_content_type = _read_readme(project_root, raw_readme)
 
+    license_expression, license_files = _parse_license(project)
+
     return BuildConfig(
         name=name,
         version=version,
@@ -131,4 +166,9 @@ def load(project_root: Path) -> BuildConfig:
         keywords=project.get("keywords", []),
         urls=project.get("urls", {}),
         dependencies=project.get("dependencies", []),
+        license_expression=license_expression,
+        license_files=license_files,
+        authors=project.get("authors", []),
+        maintainers=project.get("maintainers", []),
+        optional_dependencies=project.get("optional-dependencies", {}),
     )

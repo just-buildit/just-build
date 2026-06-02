@@ -67,6 +67,11 @@ def build_sdist(project_root: Path, sdist_dir: Path, config) -> Path:
         keywords=config.keywords or None,
         urls=config.urls or None,
         dependencies=config.dependencies or None,
+        license_expression=config.license_expression,
+        license_files=config.license_files or None,
+        authors=config.authors or None,
+        maintainers=config.maintainers or None,
+        optional_dependencies=config.optional_dependencies or None,
     )
 
     mtime = _build_epoch()

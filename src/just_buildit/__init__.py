@@ -46,6 +46,11 @@ def prepare_metadata_for_build_wheel(
         keywords=config.keywords or None,
         urls=config.urls or None,
         dependencies=config.dependencies or None,
+        license_expression=config.license_expression,
+        license_files=config.license_files or None,
+        authors=config.authors or None,
+        maintainers=config.maintainers or None,
+        optional_dependencies=config.optional_dependencies or None,
         scripts=config.scripts or None,
     )
     return dist_info.name
@@ -98,6 +103,11 @@ def build_editable(
             keywords=config.keywords or None,
             urls=config.urls or None,
             dependencies=config.dependencies or None,
+            license_expression=config.license_expression,
+            license_files=config.license_files or None,
+            authors=config.authors or None,
+            maintainers=config.maintainers or None,
+            optional_dependencies=config.optional_dependencies or None,
             scripts=config.scripts or None,
         )
 
@@ -143,6 +153,11 @@ def build_wheel(
             keywords=config.keywords or None,
             urls=config.urls or None,
             dependencies=config.dependencies or None,
+            license_expression=config.license_expression,
+            license_files=config.license_files or None,
+            authors=config.authors or None,
+            maintainers=config.maintainers or None,
+            optional_dependencies=config.optional_dependencies or None,
             scripts=config.scripts or None,
         )
 
