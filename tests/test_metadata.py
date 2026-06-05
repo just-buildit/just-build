@@ -11,6 +11,8 @@ Covers every PEP 621 field that just-buildit maps to wheel METADATA:
   - optional-dependencies (Provides-Extra + Requires-Dist with extras)
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tempfile

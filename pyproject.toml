@@ -11,7 +11,7 @@ name = "just-buildit"
 version = "0.3.8"
 description = "The missing PEP 517 build backend for C extensions."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 authors = [
     { name = "Matthew T. Hunter, Ph.D." },
     { name = "Claude Code", email = "noreply@anthropic.com" },
@@ -26,6 +26,9 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

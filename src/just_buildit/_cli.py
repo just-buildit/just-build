@@ -2,6 +2,8 @@
 _cli.py — just-buildit command-line interface.
 """
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 
