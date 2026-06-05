@@ -17,7 +17,7 @@ jobs:
       - uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: ${{ matrix.python-version }}
-      - run: uv run --no-project python -m unittest tests.test_build tests.test_examples tests.test_cli tests.test_metadata -v
+      - run: uv run --no-project -p ${{ matrix.python-version }} python -m unittest tests.test_build tests.test_examples tests.test_cli tests.test_metadata -v
 
   test-windows-ucrt64:
     runs-on: windows-latest
@@ -46,7 +46,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: sudo apt-get update && sudo apt-get install -y bazel-bootstrap && sudo ln -sf /usr/bin/bazel-bootstrap /usr/local/bin/bazel
-      - run: uv run --no-project python -m unittest tests.test_examples.TestBazelExample -v
+      - run: uv run --no-project -p ${{ matrix.python-version }} python -m unittest tests.test_examples.TestBazelExample -v
 
   build:
     needs: [test, test-bazel, test-windows-ucrt64]
@@ -56,7 +56,7 @@ jobs:
       - uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: "3.11"
-      - run: PYTHONPATH=src uv build --wheel --no-build-isolation
+      - run: PYTHONPATH=src uv build --wheel --no-build-isolation --python 3.11
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: dist
