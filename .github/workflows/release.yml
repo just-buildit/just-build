@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - "v*"
+  # Manual dry-run: runs the full test + build matrix (incl. macOS) WITHOUT
+  # publishing, so a release can be verified before tagging. The publish job
+  # is gated to tag pushes only (see its `if:` below).
+  workflow_dispatch:
 
 # Force uv to use managed interpreters (see ci.yml for the macOS/setup-uv@v8
 # rationale — the Xcode system Python lacks the headers we build against).
@@ -69,6 +73,8 @@ jobs:
 
   publish:
     needs: build
+    # Only ever publish for a real version tag — never on a manual dry-run.
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
