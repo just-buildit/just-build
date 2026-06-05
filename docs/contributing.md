@@ -56,10 +56,62 @@ importable as-is.
 
 ## Releasing
 
-- [ ] All CI checks green on `main`
-- [ ] `CHANGELOG.md` updated with release date and notes
-- [ ] Version bumped in `pyproject.toml`
-- [ ] Commit: `chore: bump version to X.Y.Z`
-- [ ] Tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
-- [ ] Confirm the release workflow passes and the wheel lands on PyPI
-- [ ] Run post-release smoke test: `python -m unittest tests.test_pypi -v`
+The release workflow (`release.yml`) triggers on any `v*` tag: it runs the
+test matrix, builds the wheel, and publishes to PyPI. The golden rule is
+**tag only a commit that is already on `origin/main`** — never a local-only
+commit. `main` is protected, so the version bump goes through a PR like any
+other change.
+
+### 1. Pick the version
+
+Pre-1.0, the patch digit absorbs both features and fixes; bump the minor digit
+only for a breaking change. Lowering the supported-Python floor or any other
+additive change is a patch bump.
+
+### 2. Bump version + changelog on a branch
+
+- [ ] `version = "X.Y.Z"` in `pyproject.toml` (single source of truth)
+- [ ] New `## [X.Y.Z] — YYYY-MM-DD` section at the top of `CHANGELOG.md`
+
+```sh
+git checkout -b chore/bump-X.Y.Z
+git add pyproject.toml CHANGELOG.md uv.lock
+git commit -m "chore: bump version to X.Y.Z"
+```
+
+> **Pre-commit may rewrite files and abort the first commit** (e.g. `uv-lock`
+> refreshing `uv.lock`, or a formatter). That is expected: re-stage everything
+> the hooks touched (`git add -A`) and commit again — the second run passes.
+
+```sh
+git push -u origin chore/bump-X.Y.Z
+gh pr create --fill
+```
+
+### 3. Merge the bump PR — then tag
+
+- [ ] CI green on the PR, then merge it. **Do not tag before it is merged.**
+- [ ] Tag the merged commit on `origin/main`, not your local branch:
+
+```sh
+git fetch origin
+git tag vX.Y.Z origin/main
+git push origin vX.Y.Z
+```
+
+> If the merge rewrote the commit (squash/rebase merge changes the SHA),
+> tagging `origin/main` guarantees the tag is reachable from `main`. Verify
+> with `git diff vX.Y.Z origin/main` — it must be empty.
+
+### 4. Verify
+
+- [ ] `release.yml` passes and the wheel lands on PyPI
+- [ ] Post-release smoke test: `python -m unittest tests.test_pypi -v`
+- [ ] (optional) build on the floor: `uvx --python 3.8 just-buildit@X.Y.Z`
+      against a C-extension fixture
+
+> **Never delete and re-push a tag after a successful publish** — that
+> re-triggers `release.yml` and the PyPI upload fails on a duplicate version.
+> Re-tagging is only safe if no publish has happened yet (e.g. you tagged
+> before CI was green). To fix a bad release, bump to the next patch version
+> instead.
