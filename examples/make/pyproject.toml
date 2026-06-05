@@ -6,7 +6,7 @@ build-backend = "just_buildit"
 name = "add"
 version = "0.1.0"
 description = "just-buildit zero-config example — no Makefile, no command."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 repair = false

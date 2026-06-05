@@ -10,6 +10,8 @@ Public surface (PEP 517):
   build_sdist()
 """
 
+from __future__ import annotations
+
 from importlib.metadata import PackageNotFoundError, version
 
 try:

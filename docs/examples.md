@@ -42,7 +42,7 @@ build-backend = "just_buildit"
 name = "add"
 version = "0.1.0"
 description = "just-buildit zero-config example — no Makefile, no command."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 repair = false
@@ -109,7 +109,7 @@ build-backend = "just_buildit"
 name = "add"
 version = "0.1.0"
 description = "just-buildit CMake example."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 command = "make pyext"
@@ -201,7 +201,7 @@ build-backend = "just_buildit"
 name = "add"
 version = "0.1.0"
 description = "just-buildit Meson example."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 command = "make pyext"
@@ -266,7 +266,7 @@ build-backend = "just_buildit"
 name = "calc"
 version = "0.1.0"
 description = "just-buildit mixed pure/platform example."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 command = "make"
@@ -390,7 +390,7 @@ build-backend = "just_buildit"
 name = "imagelib"
 version = "0.1.0"
 description = "just-buildit nested recursive package example."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 command = "make"
@@ -467,7 +467,7 @@ build-backend = "just_buildit"
 name = "add"
 version = "0.1.0"
 description = "just-buildit MinGW UCRT64 example."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 command = "make"
@@ -534,7 +534,7 @@ build-backend = "just_buildit"
 name = "greeter"
 version = "0.1.0"
 description = "just-buildit Bazel example."
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 
 [tool.just-buildit]
 command = "python build_ext.py"

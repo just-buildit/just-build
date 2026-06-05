@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.9] — 2026-06-04
+
+### Added
+
+- Support for Python 3.8, 3.9, and 3.10 — the minimum supported version is now
+  **3.8**, down from 3.11. `pyproject.toml` is parsed with stdlib `tomllib` on
+  3.11+ and a vendored copy of `tomli` (MIT, under `_vendor/`) on older
+  versions, so just-buildit stays dependency-free on every supported Python.
+
+### Changed
+
+- `requires-python` lowered to `>=3.8`; classifiers, examples, and docs updated
+  to match.
+- CI and release matrices now test Python 3.8–3.14. The `just-makeit`
+  integration job stays on 3.11+, which that tool requires.
+
+---
+
 ## [0.3.8] — 2026-06-02
 
 ### Fixed

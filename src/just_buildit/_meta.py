@@ -18,7 +18,12 @@ Extracts:
   - tool.just-buildit.editable_path  (optional; src root for .pth editable installs; defaults to src/ if present)
 """
 
-import tomllib
+from __future__ import annotations
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11 has no stdlib tomllib
+    from ._vendor import tomli as tomllib
 
 from dataclasses import dataclass, field
 from pathlib import Path

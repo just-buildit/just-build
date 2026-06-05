@@ -86,7 +86,7 @@ uvx just-buildit sdist     # build source distribution into dist/
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.8+
 - A compiler (you already have one)
 - `uv` for wheel repair (`uvx auditwheel` / `uvx delocate-wheel` / `uvx delvewheel`)
 

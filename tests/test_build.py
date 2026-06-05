@@ -26,6 +26,14 @@ FIXTURE_NOCONFIG = Path(__file__).parent / "fixture_noconfig"
 FIXTURE_PURE = Path(__file__).parent / "fixture_pure"
 SRC = Path(__file__).parent.parent / "src"
 
+# tempfile.TemporaryDirectory gained ignore_cleanup_errors in 3.10; on older
+# Pythons (we support 3.8+) it raises TypeError, so only pass it where
+# available. It mainly guards Windows, where a freshly built .pyd stays briefly
+# locked at cleanup time.
+_TMPDIR_KW = (
+    {"ignore_cleanup_errors": True} if sys.version_info >= (3, 10) else {}
+)
+
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
@@ -161,7 +169,7 @@ class TestBuildWheel(unittest.TestCase):
             self.assertTrue(any("RECORD" in n for n in names))
 
     def test_extension_is_importable_and_correct(self):
-        with tempfile.TemporaryDirectory(prefix="jb-test-", ignore_cleanup_errors=True) as tmp:
+        with tempfile.TemporaryDirectory(prefix="jb-test-", **_TMPDIR_KW) as tmp:
             wheel_dir = Path(tmp) / "dist"
             wheel_dir.mkdir()
             install_dir = Path(tmp) / "site"
@@ -205,7 +213,7 @@ class TestDefaultBuild(unittest.TestCase):
             self.assertTrue((wheel_dir / wheel_name).exists())
 
     def test_extension_is_importable_and_correct(self):
-        with tempfile.TemporaryDirectory(prefix="jb-test-", ignore_cleanup_errors=True) as tmp:
+        with tempfile.TemporaryDirectory(prefix="jb-test-", **_TMPDIR_KW) as tmp:
             wheel_dir = Path(tmp) / "dist"
             wheel_dir.mkdir()
             install_dir = Path(tmp) / "site"
@@ -278,7 +286,7 @@ class TestPureBuild(unittest.TestCase):
 
     def test_importable_after_install(self):
         with tempfile.TemporaryDirectory(
-            prefix="jb-test-", ignore_cleanup_errors=True
+            prefix="jb-test-", **_TMPDIR_KW
         ) as tmp:
             wheel_dir = Path(tmp) / "dist"
             wheel_dir.mkdir()
