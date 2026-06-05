@@ -5,6 +5,13 @@ on:
     branches: ["main"]
   pull_request:
 
+# Force uv to use managed (python-build-standalone) interpreters. Under
+# setup-uv@v8, `uv run -p X` on macOS would otherwise select the Xcode system
+# Python, whose headers aren't where the build looks (no Python.h) — the
+# managed builds ship the headers we compile against.
+env:
+  UV_PYTHON_PREFERENCE: only-managed
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -13,8 +20,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install meson + ninja (Linux)
@@ -23,7 +30,7 @@ jobs:
       - name: Install meson + ninja (macOS)
         if: runner.os == 'macOS'
         run: brew install ninja && uv tool install meson
-      - run: uv run --no-project python -m unittest tests.test_build tests.test_examples tests.test_cli tests.test_metadata -v
+      - run: uv run --no-project -p ${{ matrix.python-version }} python -m unittest tests.test_build tests.test_examples tests.test_cli tests.test_metadata -v
 
   test-bazel:
     runs-on: ubuntu-latest
@@ -31,12 +38,12 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: ${{ matrix.python-version }}
       - run: sudo apt-get update && sudo apt-get install -y bazel-bootstrap && sudo ln -sf /usr/bin/bazel-bootstrap /usr/local/bin/bazel
-      - run: uv run --no-project python -m unittest tests.test_examples.TestBazelExample -v
+      - run: uv run --no-project -p ${{ matrix.python-version }} python -m unittest tests.test_examples.TestBazelExample -v
 
   test-just-makeit:
     runs-on: ubuntu-latest
@@ -48,17 +55,17 @@ jobs:
         # jobs above.
         python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv tool install just-makeit
-      - run: uv run --no-project --with pip --with numpy python -m unittest tests.test_examples.TestJustMakeitExample -v
+      - run: uv run --no-project -p ${{ matrix.python-version }} --with pip --with numpy python -m unittest tests.test_examples.TestJustMakeitExample -v
 
   test-windows-ucrt64:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
