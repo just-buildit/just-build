@@ -41,7 +41,9 @@ classifiers = [
 
 [dependency-groups]
 dev = [
-    "zensical>=0.0.29",
+    # Docs tooling only; zensical needs >=3.10, so gate it to keep the project
+    # itself installable on the 3.8/3.9 floor.
+    "zensical>=0.0.29; python_version >= '3.10'",
 ]
 
 [project.scripts]
