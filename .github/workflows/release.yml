@@ -5,6 +5,11 @@ on:
     tags:
       - "v*"
 
+# Force uv to use managed interpreters (see ci.yml for the macOS/setup-uv@v8
+# rationale — the Xcode system Python lacks the headers we build against).
+env:
+  UV_PYTHON_PREFERENCE: only-managed
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}

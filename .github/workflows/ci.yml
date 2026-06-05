@@ -5,6 +5,13 @@ on:
     branches: ["main"]
   pull_request:
 
+# Force uv to use managed (python-build-standalone) interpreters. Under
+# setup-uv@v8, `uv run -p X` on macOS would otherwise select the Xcode system
+# Python, whose headers aren't where the build looks (no Python.h) — the
+# managed builds ship the headers we compile against.
+env:
+  UV_PYTHON_PREFERENCE: only-managed
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
