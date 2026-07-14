@@ -95,10 +95,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           source .smoke/bin/activate
-          got="$(just-buildit --help | head -1 || python -c \
-            'import just_buildit; print(just_buildit.__version__)')"
-          pkg_ver="$(python -c \
-            'from importlib.metadata import version; print(version(\"just-buildit\"))')"
+          pkg_ver="$(python -c 'from importlib.metadata import version; print(version("just-buildit"))')"
           want="${GITHUB_REF_NAME#v}"
           if [ "$pkg_ver" != "$want" ]; then
             echo "::error::version mismatch (want $want, got $pkg_ver)"; exit 1
