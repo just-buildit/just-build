@@ -63,7 +63,7 @@ if already present.
 | Variable | Default | Effect |
 |:---|:---:|---|
 | `CC` | `cc` | C compiler for zero-config builds (no `command` set) |
-| `SOURCE_DATE_EPOCH` | *(current time)* | Unix timestamp clamped into wheel and sdist archive entries |
+| `SOURCE_DATE_EPOCH` | `315532800` (1980-01-01 UTC) | Unix timestamp clamped into wheel and sdist archive entries |
 
 !!! tip "Selecting the C compiler"
 
@@ -80,8 +80,11 @@ if already present.
 
 !!! info "Reproducible builds"
 
-    Set `SOURCE_DATE_EPOCH` to a fixed Unix timestamp to make wheel and sdist
-    archives byte-for-byte identical across builds:
+    Wheel and sdist archive entries already default to a fixed timestamp
+    (1980-01-01 UTC, the zip/tar format minimum), so builds are
+    byte-for-byte reproducible without any configuration. Set
+    `SOURCE_DATE_EPOCH` to pin a different fixed timestamp instead — for
+    example, your project's last-commit time:
 
     ```sh
     SOURCE_DATE_EPOCH=1700000000 pip wheel .

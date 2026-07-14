@@ -56,6 +56,8 @@ command = "make"
 just-buildit sets environment variables, calls your command, and packages
 everything written to `$JUST_BUILDIT_OUTPUT_DIR`.
 
+Need a project scaffold? [just-makeit](https://github.com/just-buildit/just-makeit) generates a CMake-based C extension project pre-wired for just-buildit — see the [examples](examples.md#scaffolding-with-just-makeit).
+
 ### CLI
 
 ```sh

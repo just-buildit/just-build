@@ -296,6 +296,8 @@ clean:
 **`src/calc/__init__.py`**
 
 ```python
+from __future__ import annotations
+
 from calc._core import add, multiply
 
 
