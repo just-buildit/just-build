@@ -3,8 +3,9 @@
 > just-buildit is a zero-dependency PEP 517 build backend for Python C
 > extensions. You already know how to build your project; just-buildit packages
 > the result into a wheel — without owning your build system or dragging in a
-> dependency tree. It builds CMake-based C/C++ extensions and is the backend
-> used by just-makeit, while working standalone for any C-extension project.
+> dependency tree. It is build-system-agnostic (Make, CMake, Meson, Bazel, or
+> a zero-config default) and is the backend used by just-makeit, while working
+> standalone for any C-extension project.
 
 ## Documentation
 

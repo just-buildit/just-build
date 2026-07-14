@@ -3,14 +3,15 @@
 ## Running the tests
 
 ```sh
-python -m unittest tests.test_build tests.test_examples tests.test_cli -v
+python -m unittest tests.test_build tests.test_examples tests.test_cli tests.test_metadata -v
 ```
 
 No dependencies required. `tests.test_build` builds real C extensions, verifies
 wheel structure, and confirms correct results. `tests.test_examples` builds each
 example in `examples/` end-to-end; CMake, Meson, and Bazel tests skip gracefully
 if those tools are not installed. `tests.test_cli` exercises the CLI via
-subprocess.
+subprocess. `tests.test_metadata` verifies every PEP 621 field is mapped
+correctly into the wheel/sdist METADATA file.
 
 ---
 
@@ -18,9 +19,9 @@ subprocess.
 
 | Platform | Tested on |
 |---|---|
-| Linux | x86-64, aarch64 |
-| macOS | arm64, x86-64 |
-| Windows | MinGW-w64 / UCRT64 (MSYS2) |
+| Linux | x86-64 |
+| macOS | arm64 |
+| Windows | MinGW-w64 / UCRT64 (MSYS2), x86-64 |
 
 CI runs on all three platforms on every push.
 
@@ -75,15 +76,9 @@ additive change is a patch bump.
 
 ```sh
 git checkout -b chore/bump-X.Y.Z
+uv lock
 git add pyproject.toml CHANGELOG.md uv.lock
 git commit -m "chore: bump version to X.Y.Z"
-```
-
-> **Pre-commit may rewrite files and abort the first commit** (e.g. `uv-lock`
-> refreshing `uv.lock`, or a formatter). That is expected: re-stage everything
-> the hooks touched (`git add -A`) and commit again — the second run passes.
-
-```sh
 git push -u origin chore/bump-X.Y.Z
 gh pr create --fill
 ```

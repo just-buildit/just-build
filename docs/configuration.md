@@ -133,8 +133,16 @@ command       = "make"
 editable_path = "lib"     # non-standard layout
 ```
 
-!!! warning "Fallback to full wheel build"
+!!! warning "No editable source root found"
 
     If neither `editable_path` is set nor a `src/` directory exists,
-    `pip install -e .` falls back to a full wheel build — slower and
-    not truly editable for Python changes.
+    `build_editable` raises an error instead of guessing:
+
+    ```
+    build_editable requires an editable source root but none was found.
+
+    Either put your sources in a src/ directory (auto-detected), or set:
+
+      [tool.just-buildit]
+      editable_path = "src"
+    ```
