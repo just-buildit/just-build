@@ -21,21 +21,27 @@ except PackageNotFoundError:
 
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from . import _build, _meta, _sdist, _wheel
 from ._wheel import _normalize_name
 
 
-def get_requires_for_build_wheel(config_settings=None) -> list[str]:
+def get_requires_for_build_wheel(
+    config_settings: dict[str, Any] | None = None,
+) -> list[str]:
+    """Return build-time dependencies. Always empty — zero-dependency."""
     return []
 
 
 def prepare_metadata_for_build_wheel(
     metadata_directory: str,
-    config_settings=None,
+    config_settings: dict[str, Any] | None = None,
 ) -> str:
+    """Write the .dist-info directory ahead of the build; return its name."""
     config = _meta.load(Path.cwd())
     from . import _wheel as w
+
     dist_info = w._write_dist_info(
         name=config.name,
         version=config.version,
@@ -60,36 +66,41 @@ def prepare_metadata_for_build_wheel(
 
 def build_editable(
     wheel_directory: str,
-    config_settings=None,
+    config_settings: dict[str, Any] | None = None,
     metadata_directory: str | None = None,
 ) -> str:
+    """Write a .pth-file wheel pointing at the source tree; return its name."""
     project_root = Path.cwd()
     wheel_dir = Path(wheel_directory)
     config = _meta.load(project_root)
 
-    # Resolve the editable source root: explicit config wins; src/ is the default
-    # for the conventional src-layout; anything else falls back to a full wheel build.
+    # Resolve the editable source root: explicit config wins; src/ is the
+    # default for the conventional src-layout; anything else raises.
     if config.editable_path is not None:
         editable_path = config.editable_path
     elif (project_root / "src").is_dir():
         editable_path = "src"
     else:
         raise RuntimeError(
-            "build_editable requires an editable source root but none was found.\n\n"
-            "Either put your sources in a src/ directory (auto-detected), or set:\n\n"
+            "build_editable requires an editable source root but none "
+            "was found.\n\n"
+            "Either put your sources in a src/ directory (auto-detected), "
+            "or set:\n\n"
             "  [tool.just-buildit]\n"
             '  editable_path = "src"\n'
         )
 
     # Write a .pth file pointing at the source tree.
-    # No build command is run — the C extension must already be compiled in place.
+    # No build command runs — the extension must already be compiled in place.
     with tempfile.TemporaryDirectory(prefix="just-buildit-") as tmp:
         output_dir = Path(tmp) / "output"
         output_dir.mkdir()
 
         pth_target = (project_root / editable_path).resolve()
         pth_name = _normalize_name(config.name) + ".pth"
-        (output_dir / pth_name).write_text(str(pth_target) + "\n", encoding="utf-8")
+        (output_dir / pth_name).write_text(
+            str(pth_target) + "\n", encoding="utf-8"
+        )
 
         wheel_path = _wheel.build_wheel(
             name=config.name,
@@ -118,9 +129,10 @@ def build_editable(
 
 def build_wheel(
     wheel_directory: str,
-    config_settings=None,
+    config_settings: dict[str, Any] | None = None,
     metadata_directory: str | None = None,
 ) -> str:
+    """Build, package, and repair the wheel; return its filename."""
     project_root = Path.cwd()
     wheel_dir = Path(wheel_directory)
 
@@ -176,14 +188,18 @@ def build_wheel(
     return final_wheel.name
 
 
-def get_requires_for_build_sdist(config_settings=None) -> list[str]:
+def get_requires_for_build_sdist(
+    config_settings: dict[str, Any] | None = None,
+) -> list[str]:
+    """Return build-time dependencies. Always empty — zero-dependency."""
     return []
 
 
 def build_sdist(
     sdist_directory: str,
-    config_settings=None,
+    config_settings: dict[str, Any] | None = None,
 ) -> str:
+    """Build the source distribution; return its filename."""
     project_root = Path.cwd()
     sdist_dir = Path(sdist_directory)
     sdist_dir.mkdir(parents=True, exist_ok=True)

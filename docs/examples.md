@@ -15,7 +15,7 @@ pip install ./examples/mingw     # Windows/MSYS2 UCRT64 only
 pip install ./examples/bazel     # requires Bazel
 ```
 
----
+______________________________________________________________________
 
 ## Zero config
 
@@ -85,7 +85,7 @@ PyMODINIT_FUNC
 PyInit_add(void) { return PyModule_Create(&addmodule); }
 ```
 
----
+______________________________________________________________________
 
 ## CMake
 
@@ -177,7 +177,7 @@ PyMODINIT_FUNC
 PyInit_add(void) { return PyModule_Create(&addmodule); }
 ```
 
----
+______________________________________________________________________
 
 ## Meson
 
@@ -231,7 +231,7 @@ py.extension_module('add', 'src/add.c', install: false, build_by_default: true)
 
 **`src/add.c`** — same as the CMake example above.
 
----
+______________________________________________________________________
 
 ## Mixed pure Python + C extension
 
@@ -351,7 +351,7 @@ PyMODINIT_FUNC
 PyInit__core(void) { return PyModule_Create(&coremodule); }
 ```
 
----
+______________________________________________________________________
 
 ## Nested packages with multiple extensions
 
@@ -431,7 +431,7 @@ clean:
 	rm -f src/imagelib/codec/_encode*.so src/imagelib/codec/_encode*.pyd
 ```
 
----
+______________________________________________________________________
 
 ## MinGW UCRT64 (Windows)
 
@@ -509,7 +509,7 @@ pip install delvewheel
 just-buildit auto-detects `uvx delvewheel repair` on Windows and bundles
 the required DLLs into the wheel.
 
----
+______________________________________________________________________
 
 ## Bazel
 
@@ -629,7 +629,7 @@ For pre-built `.so` files from a Bazel C++ rule (e.g. nanobind), the same
 pattern applies: `build_ext.py` runs the Bazel target and copies the output
 into `$JUST_BUILDIT_OUTPUT_DIR`, renaming with `$JUST_BUILDIT_EXT_SUFFIX`.
 
----
+______________________________________________________________________
 
 ## Scaffolding with just-makeit
 
@@ -705,8 +705,7 @@ command = "make just-build"
 ```
 
 Add a new object at any time with `just-makeit object <name>`. Add state
-variables to an existing object with `just-makeit add --state
-name:type[:default]`. just-buildit remains agnostic to how many objects
+variables to an existing object with `just-makeit add --state name:type[:default]`. just-buildit remains agnostic to how many objects
 exist — it packages whatever `make just-build` writes to
 `$JUST_BUILDIT_OUTPUT_DIR`.
 

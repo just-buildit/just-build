@@ -9,12 +9,10 @@ Run with: python -m unittest tests.test_pypi -v
 
 import shutil
 import subprocess
-import sys
 import tempfile
+import unittest
 import zipfile
 from pathlib import Path
-
-import unittest
 
 FIXTURE = Path(__file__).parent / "fixture"
 
@@ -77,7 +75,11 @@ class TestPyPIBuild(unittest.TestCase):
             raise unittest.SkipTest("uvx not found")
         if not shutil.which("make"):
             raise unittest.SkipTest("make not found")
-        if not shutil.which("cc") and not shutil.which("gcc") and not shutil.which("clang"):
+        if (
+            not shutil.which("cc")
+            and not shutil.which("gcc")
+            and not shutil.which("clang")
+        ):
             raise unittest.SkipTest("no C compiler found")
         cls._tmp = tempfile.mkdtemp(prefix="jb-pypi-")
         cls._wheel_dir = Path(cls._tmp) / "dist"

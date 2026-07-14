@@ -12,7 +12,8 @@ Environment variables set for the build command:
   JUST_BUILDIT_PYTHON        path to the running Python interpreter
   JUST_BUILDIT_INCLUDE_DIR   Python C header directory
   JUST_BUILDIT_OUTPUT_DIR    directory where the .so/.pyd must be placed
-  JUST_BUILDIT_EXT_SUFFIX    full extension suffix (e.g. .cpython-312-x86_64-linux-gnu.so)
+  JUST_BUILDIT_EXT_SUFFIX    full extension suffix
+                             (e.g. .cpython-312-x86_64-linux-gnu.so)
   JUST_BUILDIT_LDFLAGS       platform link flags (before sources)
   JUST_BUILDIT_LIBS          Python link flags (after -o, Windows/MinGW only)
 """
@@ -28,18 +29,18 @@ import sys
 import sysconfig
 import tempfile
 from pathlib import Path
+from typing import Literal
+
+_REPAIR_COMMANDS = {
+    "Linux": "uvx auditwheel repair",
+    "Darwin": "uvx --from delocate delocate-wheel",
+    "Windows": "uvx delvewheel repair",
+}
 
 
 def _auto_repair_command() -> str | None:
-    """Return the platform-appropriate wheel repair command, or None if not found."""
-    system = platform.system()
-    if system == "Linux":
-        return "uvx auditwheel repair"
-    elif system == "Darwin":
-        return "uvx --from delocate delocate-wheel"
-    elif system == "Windows":
-        return "uvx delvewheel repair"
-    return None
+    """Return the platform-appropriate wheel repair command, or None."""
+    return _REPAIR_COMMANDS.get(platform.system())
 
 
 def _ldflags() -> list[str]:
@@ -47,15 +48,17 @@ def _ldflags() -> list[str]:
     if platform.system() == "Darwin":
         return ["-dynamiclib", "-undefined", "dynamic_lookup"]
     if platform.system() == "Windows":
-        return ["-shared"]  # MinGW/UCRT64 — -fPIC is meaningless on Windows x64
+        return [
+            "-shared"
+        ]  # MinGW/UCRT64 — -fPIC is meaningless on Windows x64
     return ["-shared", "-fPIC"]
 
 
 def _python_link_flags() -> list[str]:
-    """
-    On Windows/MinGW, return flags to explicitly link the Python import library.
-    Linux/macOS resolve Python symbols at runtime (dynamic lookup / system linker);
-    Windows requires them at link time.
+    """Return Windows/MinGW flags to explicitly link the Python import library.
+
+    Linux/macOS resolve Python symbols at runtime (dynamic lookup / system
+    linker); Windows requires them at link time.
 
     Two cases:
       MSYS2/MinGW Python  — ships libpython3.X[.dll].a under <root>/lib/
@@ -68,15 +71,23 @@ def _python_link_flags() -> list[str]:
 
     # Search candidate dirs: sysconfig LIBDIR, <exe_root>/lib, stdlib parent
     install_root = Path(sys.executable).parent
-    candidates = dict.fromkeys(filter(None, [
-        sysconfig.get_config_var("LIBDIR"),
-        str(install_root / "lib"),
-        str(Path(sysconfig.get_path("stdlib")).parent),
-    ]))
+    candidates = dict.fromkeys(
+        filter(
+            None,
+            [
+                sysconfig.get_config_var("LIBDIR"),
+                str(install_root / "lib"),
+                str(Path(sysconfig.get_path("stdlib")).parent),
+            ],
+        )
+    )
 
     # MSYS2 / MinGW-style Python: libpython3.X.a or libpython3.X.dll.a
     for d in candidates:
-        for stem in (f"libpython{major}.{minor}.a", f"libpython{major}.{minor}.dll.a"):
+        for stem in (
+            f"libpython{major}.{minor}.a",
+            f"libpython{major}.{minor}.dll.a",
+        ):
             if (Path(d) / stem).exists():
                 return [f"-L{d}", f"-lpython{major}.{minor}"]
 
@@ -85,11 +96,13 @@ def _python_link_flags() -> list[str]:
     if (libs_dir / f"python{major}{minor}.lib").exists():
         return [f"-L{libs_dir}", f"-lpython{major}{minor}"]
 
-    searched = list(candidates) + [str(libs_dir)]
+    searched = [*list(candidates), str(libs_dir)]
     raise RuntimeError(
-        f"Could not find Python {major}.{minor} import library on Windows.\n\n"
+        f"Could not find Python {major}.{minor} import library on "
+        f"Windows.\n\n"
         "Searched:\n" + "\n".join(f"  {d}" for d in searched) + "\n\n"
-        "Install Python from python.org or MSYS2 to get a complete distribution."
+        "Install Python from python.org or MSYS2 to get a complete "
+        "distribution."
     )
 
 
@@ -103,10 +116,10 @@ def _default_build(
     ext_suffix: str,
     pure: bool = False,
 ) -> bool:
-    """
-    Zero-config build: compile all *.c files from src/{package}/ and copy
-    everything else (Python sources, data) to output_dir verbatim.
-    Returns True if C extensions were compiled, False for pure-Python packages.
+    """Compile all *.c files from src/{package}/; copy the rest verbatim.
+
+    Returns True if C extensions were compiled, False for pure-Python
+    packages.
 
     With pure=True, no compilation happens and the src/{package}/ tree is
     copied verbatim — including any .c/.h files, which are treated as package
@@ -115,7 +128,8 @@ def _default_build(
     src_dir = project_root / "src" / package
     if not src_dir.is_dir():
         raise FileNotFoundError(
-            f"No command set in [tool.just-buildit] and no src/{package}/ directory found.\n\n"
+            f"No command set in [tool.just-buildit] and no src/{package}/ "
+            f"directory found.\n\n"
             f"For zero-config builds, put your sources in src/{package}/\n"
             f"Or set a build command:\n\n"
             f"  [tool.just-buildit]\n"
@@ -128,26 +142,39 @@ def _default_build(
         py_libs = _python_link_flags()
         cmd = [
             os.environ.get("CC", "cc"),
-            *_ldflags(), "-O2",
+            *_ldflags(),
+            "-O2",
             f"-I{include_dir}",
             *[str(f) for f in c_files],
-            "-o", str(output),
+            "-o",
+            str(output),
             *py_libs,
         ]
         print(f"just-buildit: default build: {shlex.join(cmd)}", flush=True)
         result = subprocess.run(cmd, cwd=str(project_root))
         if result.returncode != 0:
-            raise RuntimeError(f"Default build failed with exit code {result.returncode}")
+            raise RuntimeError(
+                f"Default build failed with exit code {result.returncode}"
+            )
     elif pure:
-        print(f"just-buildit: pure-Python package — copying src/{package}/ verbatim", flush=True)
+        print(
+            f"just-buildit: pure-Python package — copying "
+            f"src/{package}/ verbatim",
+            flush=True,
+        )
     else:
-        print(f"just-buildit: no .c files in src/{package}/ — pure Python package", flush=True)
+        print(
+            f"just-buildit: no .c files in src/{package}/ — "
+            f"pure Python package",
+            flush=True,
+        )
 
-    # Copy all non-source files (Python sources, data, etc.) preserving tree structure.
-    # .c and .h normally stay behind — they have no place in a wheel — but with
-    # pure=True they are kept as package data (e.g. bundled example sources).
-    # Pure Python packages go into a {package}/ subdir so `import {package}` works.
-    # C extension packages put files at the root alongside the compiled .so.
+    # Copy all non-source files (Python sources, data, etc.) preserving tree
+    # structure. .c and .h normally stay behind — they have no place in a
+    # wheel — but with pure=True they are kept as package data (e.g. bundled
+    # example sources). Pure Python packages go into a {package}/ subdir so
+    # `import {package}` works. C extension packages put files at the root
+    # alongside the compiled .so.
     _skip: set[str] = set() if pure else {".c", ".h"}
     pkg_out = output_dir / package if not c_files else output_dir
     for src_file in src_dir.rglob("*"):
@@ -160,39 +187,62 @@ def _default_build(
 
 
 def _make_env(*, name: str, output_dir: Path) -> tuple[dict[str, str], str]:
-    """
-    Return (env, ext_suffix) for a build command invocation.
-    Sets JUST_BUILDIT_* variables in a copy of os.environ.
-    Raises RuntimeError if sysconfig cannot supply required values.
+    """Return (env, ext_suffix) for a build command invocation.
+
+    Sets JUST_BUILDIT_* variables in a copy of os.environ. Raises
+    RuntimeError if sysconfig cannot supply required values.
     """
     include_dir = sysconfig.get_path("include")
     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
     if not include_dir:
-        raise RuntimeError("Could not determine Python include directory via sysconfig.")
+        raise RuntimeError(
+            "Could not determine Python include directory via sysconfig."
+        )
     if not ext_suffix:
-        raise RuntimeError("Could not determine extension suffix via sysconfig.")
+        raise RuntimeError(
+            "Could not determine extension suffix via sysconfig."
+        )
     env = os.environ.copy()
-    env.update({
-        "JUST_BUILDIT_NAME":        name,
-        "JUST_BUILDIT_PYTHON":      sys.executable,
-        "JUST_BUILDIT_INCLUDE_DIR": include_dir,
-        "JUST_BUILDIT_OUTPUT_DIR":  str(output_dir),
-        "JUST_BUILDIT_EXT_SUFFIX":  ext_suffix,
-        "JUST_BUILDIT_LDFLAGS":     " ".join(_ldflags()),
-        "JUST_BUILDIT_LIBS":        "",
-    })
+    env.update(
+        {
+            "JUST_BUILDIT_NAME": name,
+            "JUST_BUILDIT_PYTHON": sys.executable,
+            "JUST_BUILDIT_INCLUDE_DIR": include_dir,
+            "JUST_BUILDIT_OUTPUT_DIR": str(output_dir),
+            "JUST_BUILDIT_EXT_SUFFIX": ext_suffix,
+            "JUST_BUILDIT_LDFLAGS": " ".join(_ldflags()),
+            "JUST_BUILDIT_LIBS": "",
+        }
+    )
     return env, ext_suffix
 
 
 def _print_env(env: dict[str, str], ext_suffix: str) -> None:
-    print(f"  JUST_BUILDIT_NAME        = {env['JUST_BUILDIT_NAME']}", flush=True)
-    print(f"  JUST_BUILDIT_PYTHON      = {env['JUST_BUILDIT_PYTHON']}", flush=True)
-    print(f"  JUST_BUILDIT_INCLUDE_DIR = {env['JUST_BUILDIT_INCLUDE_DIR']}", flush=True)
-    print(f"  JUST_BUILDIT_OUTPUT_DIR  = {env['JUST_BUILDIT_OUTPUT_DIR']}", flush=True)
+    print(
+        f"  JUST_BUILDIT_NAME        = {env['JUST_BUILDIT_NAME']}", flush=True
+    )
+    print(
+        f"  JUST_BUILDIT_PYTHON      = {env['JUST_BUILDIT_PYTHON']}",
+        flush=True,
+    )
+    print(
+        f"  JUST_BUILDIT_INCLUDE_DIR = {env['JUST_BUILDIT_INCLUDE_DIR']}",
+        flush=True,
+    )
+    print(
+        f"  JUST_BUILDIT_OUTPUT_DIR  = {env['JUST_BUILDIT_OUTPUT_DIR']}",
+        flush=True,
+    )
     print(f"  JUST_BUILDIT_EXT_SUFFIX  = {ext_suffix}", flush=True)
-    print(f"  JUST_BUILDIT_LDFLAGS     = {env['JUST_BUILDIT_LDFLAGS']}", flush=True)
+    print(
+        f"  JUST_BUILDIT_LDFLAGS     = {env['JUST_BUILDIT_LDFLAGS']}",
+        flush=True,
+    )
     if env["JUST_BUILDIT_LIBS"]:
-        print(f"  JUST_BUILDIT_LIBS        = {env['JUST_BUILDIT_LIBS']}", flush=True)
+        print(
+            f"  JUST_BUILDIT_LIBS        = {env['JUST_BUILDIT_LIBS']}",
+            flush=True,
+        )
 
 
 def run_build(
@@ -204,12 +254,13 @@ def run_build(
     project_root: Path,
     pure: bool = False,
 ) -> Path:
-    """
-    Run the build (user command or zero-config default) with JUST_BUILDIT_* env vars set.
-    Returns output_dir — the wheel content root, containing all built artifacts.
+    """Run the build (user command or zero-config default) with env vars set.
 
-    pure=True forces the zero-config copy path and compiles nothing, even when
-    src/{package}/ contains .c files (they ship as package data).
+    Returns output_dir — the wheel content root, containing all built
+    artifacts.
+
+    pure=True forces the zero-config copy path and compiles nothing, even
+    when src/{package}/ contains .c files (they ship as package data).
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     env, ext_suffix = _make_env(name=name, output_dir=output_dir)
@@ -228,7 +279,8 @@ def run_build(
             pure=pure,
         )
     else:
-        # Explicit command: populate JUST_BUILDIT_LIBS now that we know C is involved.
+        # Explicit command: populate JUST_BUILDIT_LIBS now that we know C
+        # is involved.
         env["JUST_BUILDIT_LIBS"] = " ".join(_python_link_flags())
         print(f"just-buildit: running build command: {command}", flush=True)
         _print_env(env, ext_suffix)
@@ -240,13 +292,15 @@ def run_build(
         )
         if result.returncode != 0:
             raise RuntimeError(
-                f"Build command failed with exit code {result.returncode}:\n  {command}"
+                f"Build command failed with exit code "
+                f"{result.returncode}:\n  {command}"
             )
 
     if needs_extension and not list(output_dir.rglob(f"*{ext_suffix}")):
         raise FileNotFoundError(
             f"Build produced no extension (*{ext_suffix}) in {output_dir}\n\n"
-            f"Make sure your build command writes extensions to $JUST_BUILDIT_OUTPUT_DIR"
+            f"Make sure your build command writes extensions to "
+            f"$JUST_BUILDIT_OUTPUT_DIR"
         )
 
     return output_dir
@@ -256,11 +310,10 @@ def run_repair(
     *,
     wheel_path: Path,
     wheel_dir: Path,
-    repair_command: str | None | bool,
+    repair_command: str | None | Literal[False],
     repair_args: list[str] | None = None,
 ) -> Path:
-    """
-    Run the wheel repair command. Returns path to the (possibly repaired) wheel.
+    """Run the wheel repair command; return the (possibly repaired) wheel path.
 
     repair_command:
       None  -> auto-detect by platform
@@ -274,41 +327,56 @@ def run_repair(
         repair_command = _auto_repair_command()
         if repair_command is None:
             print(
-                "just-buildit: no repair command detected for this platform, skipping repair.",
+                "just-buildit: no repair command detected for this "
+                "platform, skipping repair.",
                 flush=True,
             )
             return wheel_path
 
     # On Linux, auditwheel requires patchelf — check early for a clear error.
-    if platform.system() == "Linux" and "auditwheel" in repair_command:
-        if not shutil.which("patchelf"):
-            raise RuntimeError(
-                "auditwheel requires patchelf, but it was not found on PATH.\n\n"
-                "Install it with your system package manager:\n"
-                "  apt:  sudo apt install patchelf\n"
-                "  dnf:  sudo dnf install patchelf\n"
-                "  brew: brew install patchelf\n\n"
-                "Or disable repair in pyproject.toml:\n"
-                "  [tool.just-buildit]\n"
-                "  repair = false"
-            )
+    if (
+        platform.system() == "Linux"
+        and "auditwheel" in repair_command
+        and not shutil.which("patchelf")
+    ):
+        raise RuntimeError(
+            "auditwheel requires patchelf, but it was not found on PATH.\n\n"
+            "Install it with your system package manager:\n"
+            "  apt:  sudo apt install patchelf\n"
+            "  dnf:  sudo dnf install patchelf\n"
+            "  brew: brew install patchelf\n\n"
+            "Or disable repair in pyproject.toml:\n"
+            "  [tool.just-buildit]\n"
+            "  repair = false"
+        )
 
     # Repair into a temp subdirectory so the tool never writes into the same
     # directory as the input wheel — on Windows this causes a PermissionError
     # when pip holds the source file open.
-    with tempfile.TemporaryDirectory(dir=wheel_dir, prefix="_repair_") as repair_tmp:
-        cmd = shlex.split(repair_command) + (repair_args or []) + [str(wheel_path), "-w", repair_tmp]
+    with tempfile.TemporaryDirectory(
+        dir=wheel_dir, prefix="_repair_"
+    ) as repair_tmp:
+        cmd = (
+            shlex.split(repair_command)
+            + (repair_args or [])
+            + [str(wheel_path), "-w", repair_tmp]
+        )
         print(f"just-buildit: repairing wheel: {shlex.join(cmd)}", flush=True)
 
         result = subprocess.run(cmd)
         if result.returncode != 0:
             raise RuntimeError(
-                f"Wheel repair failed with exit code {result.returncode}:\n  {shlex.join(cmd)}"
+                f"Wheel repair failed with exit code "
+                f"{result.returncode}:\n  {shlex.join(cmd)}"
             )
 
-        repaired_wheels = sorted(Path(repair_tmp).glob("*.whl"), key=lambda p: p.stat().st_mtime)
+        repaired_wheels = sorted(
+            Path(repair_tmp).glob("*.whl"), key=lambda p: p.stat().st_mtime
+        )
         if not repaired_wheels:
-            raise FileNotFoundError(f"Repair command ran but no wheel found in {repair_tmp}")
+            raise FileNotFoundError(
+                f"Repair command ran but no wheel found in {repair_tmp}"
+            )
 
         repaired = repaired_wheels[-1]
         dest = wheel_dir / repaired.name

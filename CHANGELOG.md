@@ -5,32 +5,32 @@
 ### Added
 
 - Support for Python 3.8, 3.9, and 3.10 — the minimum supported version is now
-  **3.8**, down from 3.11. `pyproject.toml` is parsed with stdlib `tomllib` on
-  3.11+ and a vendored copy of `tomli` (MIT, under `_vendor/`) on older
-  versions, so just-buildit stays dependency-free on every supported Python.
+    **3.8**, down from 3.11. `pyproject.toml` is parsed with stdlib `tomllib` on
+    3.11+ and a vendored copy of `tomli` (MIT, under `_vendor/`) on older
+    versions, so just-buildit stays dependency-free on every supported Python.
 
 ### Changed
 
 - `requires-python` lowered to `>=3.8`; classifiers, examples, and docs updated
-  to match.
+    to match.
 - CI and release matrices now test Python 3.8–3.14. The `just-makeit`
-  integration job stays on 3.11+, which that tool requires.
+    integration job stays on 3.11+, which that tool requires.
 
----
+______________________________________________________________________
 
 ## [0.3.8] — 2026-06-02
 
 ### Fixed
 
 - Wheels and sdists were missing `Requires-Dist`, `Provides-Extra`, `License`,
-  `Author`, `Maintainer`, and `License-File` headers — `license`, `authors`,
-  `maintainers`, and `optional-dependencies` from `[project]` were parsed by
-  `_meta.load` but never wired through to `_metadata_bytes`. All six header
-  types now appear correctly in built wheel and sdist METADATA.
+    `Author`, `Maintainer`, and `License-File` headers — `license`, `authors`,
+    `maintainers`, and `optional-dependencies` from `[project]` were parsed by
+    `_meta.load` but never wired through to `_metadata_bytes`. All six header
+    types now appear correctly in built wheel and sdist METADATA.
 - Added `tests/test_metadata.py` — 54 unit and integration tests covering every
-  PEP 621 metadata field that just-buildit maps to wheel METADATA.
+    PEP 621 metadata field that just-buildit maps to wheel METADATA.
 
----
+______________________________________________________________________
 
 ## [0.3.7] — 2026-05-23
 
@@ -42,7 +42,7 @@
 - `posts/python-c-extensions-shouldnt-be-this-hard.md`: corrected `--component` → `--object` in both code examples
 - `zensical.toml`: removed explicit `markdown_extensions` override that was shadowing Zensical's full default set — admonitions, `attr_list`, `pymdownx.details`, and all other defaults now apply correctly
 
----
+______________________________________________________________________
 
 ## [0.3.6] — 2026-05-19
 
@@ -55,7 +55,7 @@
 
 - `[tool.just-buildit]` rejects setting both `pure` and `command` — `pure` means "compile nothing", so a build command is contradictory
 
----
+______________________________________________________________________
 
 ## [0.3.5] — 2026-05-10
 
@@ -77,7 +77,7 @@
 - `environment-variables.md`: corrected `JUST_BUILDIT_LDFLAGS` for Windows/MinGW — it is `-shared` (not `-shared -fPIC`); `-fPIC` is meaningless on Windows x64
 - `examples.md` just-makeit section updated: `--component` → `--object`, config file is `just-makeit.toml`, layout tree reflects current scaffold output
 
----
+______________________________________________________________________
 
 ## [0.3.4] — 2026-05-07
 
@@ -85,7 +85,7 @@
 
 - `repair-args` config option in `[tool.just-buildit]` — accepts a list or string of extra arguments passed to the wheel repair command (e.g. `--plat manylinux_2_28_x86_64` for `auditwheel repair`)
 
----
+______________________________________________________________________
 
 ## [0.3.3] — 2026-05-06
 
@@ -94,7 +94,7 @@
 - Sdist `PKG-INFO` now includes classifiers, keywords, project URLs, and dependencies (previously only written into wheel `METADATA`)
 - `__version__` now derived from installed package metadata instead of a hardcoded string
 
----
+______________________________________________________________________
 
 ## [0.3.2] — 2026-05-06
 
@@ -102,7 +102,7 @@
 
 - Classifiers, keywords, project URLs, and dependencies were parsed from `pyproject.toml` but never written into the wheel METADATA or sdist PKG-INFO — they now appear correctly on PyPI
 
----
+______________________________________________________________________
 
 ## [0.3.1] — 2026-05-05
 
@@ -111,7 +111,7 @@
 - PyPI metadata: keywords, classifiers (Python 3.11–3.14), project URLs (Homepage, Documentation, Changelog)
 - README: just-makeit callout and cross-link for projects needing a CMake scaffold
 
----
+______________________________________________________________________
 
 ## [0.3.0] — 2026-04-30
 
@@ -129,7 +129,7 @@
 - Quickstart updated to call out flat, nested, multi-extension, and mixed layouts
 - PyPI doc links updated to point to GitHub Pages
 
----
+______________________________________________________________________
 
 ## [0.2.1] — 2026-04-15
 
@@ -137,36 +137,36 @@
 
 - Renamed config section from `[tool.just-build]` to `[tool.just-buildit]`
 
----
+______________________________________________________________________
 
 ## [0.2.0] — 2026-04-15
 
 ### Breaking
 
 - Renamed Python module from `just_build` to `just_buildit`. Update your `pyproject.toml`:
-  ```toml
-  [build-system]
-  requires = ["just-buildit"]
-  build-backend = "just_buildit"   # was: just_build
-  ```
+    ```toml
+    [build-system]
+    requires = ["just-buildit"]
+    build-backend = "just_buildit"   # was: just_build
+    ```
 - Renamed all environment variables from `JUST_BUILD_*` to `JUST_BUILDIT_*`. Update your Makefiles and build scripts:
-  - `JUST_BUILD_NAME` → `JUST_BUILDIT_NAME`
-  - `JUST_BUILD_PYTHON` → `JUST_BUILDIT_PYTHON`
-  - `JUST_BUILD_INCLUDE_DIR` → `JUST_BUILDIT_INCLUDE_DIR`
-  - `JUST_BUILD_OUTPUT_DIR` → `JUST_BUILDIT_OUTPUT_DIR`
-  - `JUST_BUILD_EXT_SUFFIX` → `JUST_BUILDIT_EXT_SUFFIX`
-  - `JUST_BUILD_LDFLAGS` → `JUST_BUILDIT_LDFLAGS`
-  - `JUST_BUILD_LIBS` → `JUST_BUILDIT_LIBS`
+    - `JUST_BUILD_NAME` → `JUST_BUILDIT_NAME`
+    - `JUST_BUILD_PYTHON` → `JUST_BUILDIT_PYTHON`
+    - `JUST_BUILD_INCLUDE_DIR` → `JUST_BUILDIT_INCLUDE_DIR`
+    - `JUST_BUILD_OUTPUT_DIR` → `JUST_BUILDIT_OUTPUT_DIR`
+    - `JUST_BUILD_EXT_SUFFIX` → `JUST_BUILDIT_EXT_SUFFIX`
+    - `JUST_BUILD_LDFLAGS` → `JUST_BUILDIT_LDFLAGS`
+    - `JUST_BUILD_LIBS` → `JUST_BUILDIT_LIBS`
 
 ### Added
 
 - CLI entry point: `just-buildit inspect`, `just-buildit build [DIR]`, `just-buildit sdist [DIR]`
-  - `inspect` shows parsed config, build mode, env vars, and predicted wheel filename without running anything
-  - `build` builds a wheel into the given directory (default: `dist/`)
-  - `sdist` builds a source distribution into the given directory (default: `dist/`)
+    - `inspect` shows parsed config, build mode, env vars, and predicted wheel filename without running anything
+    - `build` builds a wheel into the given directory (default: `dist/`)
+    - `sdist` builds a source distribution into the given directory (default: `dist/`)
 - `build_sdist()` / `get_requires_for_build_sdist()` — PEP 517 sdist support
 
----
+______________________________________________________________________
 
 ## [0.1.5] — 2026-04-03
 
@@ -174,7 +174,7 @@
 
 - Don't delete the original wheel when the repair tool writes an output file with the same filename
 
----
+______________________________________________________________________
 
 ## [0.1.4] — 2026-04-03
 
@@ -182,7 +182,7 @@
 
 - Repair into a temp subdirectory to avoid a `PermissionError` on Windows when pip holds the source wheel open
 
----
+______________________________________________________________________
 
 ## [0.1.3] — 2026-04-02
 
@@ -192,7 +192,7 @@
 - Windows native CPython link flags via `libs/python3X.lib`
 - CI: release gate, example Makefile fixes
 
----
+______________________________________________________________________
 
 ## [0.1.2] — 2026-04-02
 
@@ -200,7 +200,7 @@
 
 - `editable_path` config option: `build_editable()` writes a `.pth` file instead of rebuilding, enabling instant `uv sync` for projects with C extensions compiled in place
 
----
+______________________________________________________________________
 
 ## [0.1.1] — 2026-04-02
 

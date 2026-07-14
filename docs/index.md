@@ -5,7 +5,7 @@ The missing [PEP 517](https://peps.python.org/pep-0517/) build backend for C ext
 You know how to build your project. just-buildit knows how to package it.
 That's the whole deal.
 
----
+______________________________________________________________________
 
 ## The problem
 
@@ -17,7 +17,7 @@ bigger than your project. There's no option that just says:
 
 just-buildit is that option.
 
----
+______________________________________________________________________
 
 ## Installation
 
@@ -25,7 +25,7 @@ just-buildit is that option.
 pip install just-buildit
 ```
 
----
+______________________________________________________________________
 
 ## Quickstart
 
@@ -66,7 +66,7 @@ uvx just-buildit build     # build wheel into dist/
 uvx just-buildit sdist     # build source distribution into dist/
 ```
 
----
+______________________________________________________________________
 
 ## Requirements
 

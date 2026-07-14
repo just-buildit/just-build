@@ -10,7 +10,7 @@ The missing [PEP 517](https://peps.python.org/pep-0517/) build backend for C ext
 You know how to build your project. just-buildit knows how to package it.
 That's the whole deal.
 
----
+______________________________________________________________________
 
 ## The problem
 
@@ -22,7 +22,7 @@ bigger than your project. There's no option that just says:
 
 just-buildit is that option.
 
----
+______________________________________________________________________
 
 ## Installation
 
@@ -30,7 +30,7 @@ just-buildit is that option.
 pip install just-buildit
 ```
 
----
+______________________________________________________________________
 
 ## Quickstart
 
@@ -71,18 +71,18 @@ uvx just-buildit build     # build wheel into dist/
 uvx just-buildit sdist     # build source distribution into dist/
 ```
 
----
+______________________________________________________________________
 
 ## Documentation
 
-| | |
-|---|---|
-| [Environment variables](https://just-buildit.github.io/just-buildit/environment-variables/) | What just-buildit sets before calling your command |
-| [Examples](https://just-buildit.github.io/just-buildit/examples/) | Make, CMake, Meson, Bazel, mixed Python + C, nested packages |
-| [Configuration](https://just-buildit.github.io/just-buildit/configuration/) | Full config reference, wheel repair, editable installs |
-| [Contributing](https://just-buildit.github.io/just-buildit/contributing/) | Running tests, platform support, bootstrapping |
+|                                                                                             |                                                              |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| [Environment variables](https://just-buildit.github.io/just-buildit/environment-variables/) | What just-buildit sets before calling your command           |
+| [Examples](https://just-buildit.github.io/just-buildit/examples/)                           | Make, CMake, Meson, Bazel, mixed Python + C, nested packages |
+| [Configuration](https://just-buildit.github.io/just-buildit/configuration/)                 | Full config reference, wheel repair, editable installs       |
+| [Contributing](https://just-buildit.github.io/just-buildit/contributing/)                   | Running tests, platform support, bootstrapping               |
 
----
+______________________________________________________________________
 
 ## Requirements
 
@@ -90,13 +90,13 @@ uvx just-buildit sdist     # build source distribution into dist/
 - A compiler (you already have one)
 - `uv` for wheel repair (`uvx auditwheel` / `uvx delocate-wheel` / `uvx delvewheel`)
 
----
+______________________________________________________________________
 
 ## Authors
 
 Matthew T. Hunter, Ph.D. and [Claude Code](https://claude.ai/code)
 
----
+______________________________________________________________________
 
 ## License
 

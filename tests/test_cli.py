@@ -17,7 +17,12 @@ SRC = Path(__file__).parent.parent / "src"
 
 def _cli(*args, cwd=FIXTURE) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, "-c", "from just_buildit._cli import main; main()", *args],
+        [
+            sys.executable,
+            "-c",
+            "from just_buildit._cli import main; main()",
+            *args,
+        ],
         cwd=cwd,
         env={**os.environ, "PYTHONPATH": str(SRC)},
         capture_output=True,
@@ -25,7 +30,6 @@ def _cli(*args, cwd=FIXTURE) -> subprocess.CompletedProcess:
     )
 
 
-import tempfile
 import unittest
 
 
@@ -76,7 +80,7 @@ class TestCLIInspect(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
             (Path(tmp) / "pyproject.toml").write_text(
                 '[project]\nname = "foo"\nversion = "0.1.0"\n'
-                '[tool.just-buildit]\nrepair = false\n'
+                "[tool.just-buildit]\nrepair = false\n"
                 'repair-args = ["--plat", "manylinux_2_28_x86_64"]\n'
             )
             r = _cli("inspect", cwd=tmp)
@@ -88,7 +92,7 @@ class TestCLIInspect(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
             (Path(tmp) / "pyproject.toml").write_text(
                 '[project]\nname = "foo"\nversion = "0.1.0"\n'
-                '[tool.just-buildit]\nrepair = false\n'
+                "[tool.just-buildit]\nrepair = false\n"
             )
             r = _cli("inspect", cwd=tmp)
         self.assertEqual(r.returncode, 0)
@@ -100,7 +104,11 @@ class TestCLIBuild(unittest.TestCase):
     def setUpClass(cls):
         if not shutil.which("make"):
             raise unittest.SkipTest("make not found")
-        if not shutil.which("cc") and not shutil.which("gcc") and not shutil.which("clang"):
+        if (
+            not shutil.which("cc")
+            and not shutil.which("gcc")
+            and not shutil.which("clang")
+        ):
             raise unittest.SkipTest("no C compiler found")
         cls._tmp = tempfile.mkdtemp(prefix="jb-cli-build-")
         cls._wheel_dir = Path(cls._tmp) / "dist"

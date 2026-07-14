@@ -23,16 +23,19 @@ import re
 import sysconfig
 import time
 import zipfile
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _normalize_name(name: str) -> str:
-    """PEP 427 wheel name normalization: lowercase, replace runs of [^A-Za-z0-9] with '_'."""
+    """PEP 427 wheel name normalization: lowercase, [^A-Za-z0-9]+ -> '_'."""
     return re.sub(r"[^A-Za-z0-9]+", "_", name).lower()
 
 
 def _normalize_version(version: str) -> str:
-    """Wheel filename version: replace '-' with '_' only (dots are valid and required)."""
+    """Wheel filename version: '-' -> '_' only (dots are valid, required)."""
     return version.replace("-", "_")
 
 
@@ -71,17 +74,20 @@ _ALWAYS_EXCLUDE = ("**/__pycache__/**", "**/*.pyc", "**/*.pyo")
 
 
 def _is_excluded(rel_path: str, patterns: list[str]) -> bool:
-    return any(fnmatch.fnmatch(rel_path, pat) for pat in (*_ALWAYS_EXCLUDE, *patterns))
+    return any(
+        fnmatch.fnmatch(rel_path, pat) for pat in (*_ALWAYS_EXCLUDE, *patterns)
+    )
 
 
 def _sha256_record(data: bytes) -> str:
     digest = hashlib.sha256(data).digest()
     import base64
+
     return "sha256=" + base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
 
 
 def _format_contact(person: dict[str, str], header: str) -> str | None:
-    """Return a single METADATA contact header line, or None if the dict is empty."""
+    """Return a single METADATA contact header line, or None if empty."""
     name = person.get("name", "").strip()
     email = person.get("email", "").strip()
     if name and email:
@@ -152,13 +158,15 @@ def _metadata_bytes(
 
 
 def _entry_points_bytes(scripts: dict[str, str]) -> bytes:
-    """Return entry_points.txt content for the given console_scripts mapping."""
+    """Return entry_points.txt content for a console_scripts mapping."""
     lines = ["[console_scripts]"]
     lines += [f"{name} = {ref}" for name, ref in sorted(scripts.items())]
     return ("\n".join(lines) + "\n").encode()
 
 
-def _wheel_meta_bytes(py_tag: str, abi_tag: str, plat_tag: str, pure: bool = False) -> bytes:
+def _wheel_meta_bytes(
+    py_tag: str, abi_tag: str, plat_tag: str, pure: bool = False
+) -> bytes:
     return (
         f"Wheel-Version: 1.0\n"
         f"Generator: just-buildit\n"
@@ -192,27 +200,32 @@ def _write_dist_info(
     norm_version = _normalize_version(version)
     dist_info = metadata_dir / f"{norm_name}-{norm_version}.dist-info"
     dist_info.mkdir(parents=True, exist_ok=True)
-    (dist_info / "METADATA").write_bytes(_metadata_bytes(
-        name, version,
-        summary=summary,
-        readme_text=readme_text,
-        readme_content_type=readme_content_type,
-        requires_python=requires_python,
-        classifiers=classifiers,
-        keywords=keywords,
-        urls=urls,
-        dependencies=dependencies,
-        license_expression=license_expression,
-        license_files=license_files,
-        authors=authors,
-        maintainers=maintainers,
-        optional_dependencies=optional_dependencies,
-    ))
+    (dist_info / "METADATA").write_bytes(
+        _metadata_bytes(
+            name,
+            version,
+            summary=summary,
+            readme_text=readme_text,
+            readme_content_type=readme_content_type,
+            requires_python=requires_python,
+            classifiers=classifiers,
+            keywords=keywords,
+            urls=urls,
+            dependencies=dependencies,
+            license_expression=license_expression,
+            license_files=license_files,
+            authors=authors,
+            maintainers=maintainers,
+            optional_dependencies=optional_dependencies,
+        )
+    )
     (dist_info / "WHEEL").write_bytes(
         _wheel_meta_bytes(_python_tag(), _abi_tag(), _platform_tag())
     )
     if scripts:
-        (dist_info / "entry_points.txt").write_bytes(_entry_points_bytes(scripts))
+        (dist_info / "entry_points.txt").write_bytes(
+            _entry_points_bytes(scripts)
+        )
     return dist_info
 
 
@@ -238,22 +251,26 @@ def build_wheel(
     optional_dependencies: dict[str, list[str]] | None = None,
     scripts: dict[str, str] | None = None,
 ) -> Path:
-    """
-    Package everything in output_dir into a wheel and write it to wheel_dir.
-    output_dir is the wheel content root — directory structure is preserved.
-    Returns the path to the wheel file.
+    """Package everything in output_dir into a wheel and write it to wheel_dir.
+
+    output_dir is the wheel content root — directory structure is
+    preserved. Returns the path to the wheel file.
     """
     norm_name = _normalize_name(name)
     norm_version = _normalize_version(version)
 
     _exclude = exclude or []
     content_paths = sorted(
-        p for p in output_dir.rglob("*")
-        if p.is_file() and not _is_excluded(str(p.relative_to(output_dir)), _exclude)
+        p
+        for p in output_dir.rglob("*")
+        if p.is_file()
+        and not _is_excluded(str(p.relative_to(output_dir)), _exclude)
     )
 
-    # Read each content file once; reuse the bytes for both RECORD and zip writing.
-    content = [(str(p.relative_to(output_dir)), p.read_bytes()) for p in content_paths]
+    # Read each content file once; reuse the bytes for RECORD and zip writing.
+    content = [
+        (str(p.relative_to(output_dir)), p.read_bytes()) for p in content_paths
+    ]
 
     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX") or ""
     pure = not any(arcname.endswith(ext_suffix) for arcname, _ in content)
@@ -265,12 +282,15 @@ def build_wheel(
         abi_tag = _abi_tag()
         plat_tag = _platform_tag()
 
-    wheel_name = f"{norm_name}-{norm_version}-{py_tag}-{abi_tag}-{plat_tag}.whl"
+    wheel_name = (
+        f"{norm_name}-{norm_version}-{py_tag}-{abi_tag}-{plat_tag}.whl"
+    )
     wheel_path = wheel_dir / wheel_name
     dist_info = f"{norm_name}-{norm_version}.dist-info"
 
     metadata = _metadata_bytes(
-        name, version,
+        name,
+        version,
         summary=summary,
         readme_text=readme_text,
         readme_content_type=readme_content_type,
@@ -311,7 +331,10 @@ def build_wheel(
     date_time = _zip_date_time()
     wheel_dir.mkdir(parents=True, exist_ok=True)
 
-    with zipfile.ZipFile(wheel_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(
+        wheel_path, "w", compression=zipfile.ZIP_DEFLATED
+    ) as zf:
+
         def _write(arcname: str, data: bytes) -> None:
             zi = zipfile.ZipInfo(arcname, date_time)
             zi.compress_type = zipfile.ZIP_DEFLATED

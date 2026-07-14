@@ -65,9 +65,7 @@ class TestMetadataBytesCore(unittest.TestCase):
 
     def test_classifiers(self):
         out = _meta_str(classifiers=["Programming Language :: Python :: 3"])
-        self.assertIn(
-            "Classifier: Programming Language :: Python :: 3", out
-        )
+        self.assertIn("Classifier: Programming Language :: Python :: 3", out)
 
     def test_keywords(self):
         out = _meta_str(keywords=["dsp", "audio"])
@@ -257,7 +255,7 @@ class TestMetaLoad(unittest.TestCase):
     def test_optional_dependencies_parsed(self):
         cfg = self._tmpload(
             '[project]\nname="pkg"\nversion="1.0"\n'
-            '[project.optional-dependencies]\n'
+            "[project.optional-dependencies]\n"
             'dev = ["pytest", "black"]\n'
             'docs = ["sphinx"]\n'
         )
@@ -291,7 +289,9 @@ class TestMetaLoad(unittest.TestCase):
             '[project]\nname="pkg"\nversion="1.0"\n'
             '[[project.authors]]\nname = "Alice"\nemail = "a@example.com"\n'
         )
-        self.assertEqual(cfg.authors, [{"name": "Alice", "email": "a@example.com"}])
+        self.assertEqual(
+            cfg.authors, [{"name": "Alice", "email": "a@example.com"}]
+        )
 
     def test_maintainers_parsed(self):
         cfg = self._tmpload(
@@ -315,6 +315,7 @@ class TestPrepareMetadataContent(unittest.TestCase):
 
     def _prepare(self, toml: str) -> str:
         import just_buildit
+
         with tempfile.TemporaryDirectory(prefix="jb-meta-") as tmp:
             tmpdir = Path(tmp)
             (tmpdir / "pyproject.toml").write_text(toml)
@@ -371,17 +372,18 @@ class TestPrepareMetadataContent(unittest.TestCase):
 
 
 class TestWheelMetadataContent(unittest.TestCase):
-    """build_wheel — METADATA content in a pure-Python wheel (no compiler needed)."""
+    """build_wheel — METADATA content in a pure-Python wheel (no compiler)."""
 
     def _build_pure_meta(self, extra_toml: str = "") -> str:
         """Build a no-op pure wheel and return the METADATA contents."""
         import just_buildit
+
         with tempfile.TemporaryDirectory(prefix="jb-whl-") as tmp:
             tmpdir = Path(tmp)
             toml = (
                 '[project]\nname="pkg"\nversion="1.0"\n'
                 + extra_toml
-                + '[tool.just-buildit]\npure = true\nrepair = false\n'
+                + "[tool.just-buildit]\npure = true\nrepair = false\n"
             )
             (tmpdir / "pyproject.toml").write_text(toml)
             src = tmpdir / "src" / "pkg"
@@ -403,9 +405,7 @@ class TestWheelMetadataContent(unittest.TestCase):
                 return zf.read(meta_name).decode()
 
     def test_requires_dist_in_wheel(self):
-        meta = self._build_pure_meta(
-            'dependencies = ["requests>=2.0"]\n'
-        )
+        meta = self._build_pure_meta('dependencies = ["requests>=2.0"]\n')
         self.assertIn("Requires-Dist: requests>=2.0", meta)
 
     def test_no_requires_dist_when_no_deps(self):
@@ -430,9 +430,7 @@ class TestWheelMetadataContent(unittest.TestCase):
         self.assertIn("Author-email: Eve <e@example.com>", meta)
 
     def test_license_file_in_wheel(self):
-        meta = self._build_pure_meta(
-            '[project.license]\nfile = "LICENSE"\n'
-        )
+        meta = self._build_pure_meta('[project.license]\nfile = "LICENSE"\n')
         self.assertIn("License-File: LICENSE", meta)
 
 

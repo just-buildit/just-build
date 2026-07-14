@@ -73,4 +73,3 @@ link = "https://github.com/just-buildit/just-buildit"
 [[project.extra.social]]
 icon = "fontawesome/brands/python"
 link = "https://pypi.org/project/just-buildit/"
-

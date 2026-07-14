@@ -1,0 +1,46 @@
+# python-only = canonical base + Python (ruff). See
+# ~/mcp-store/configs/.pre-commit-config.yaml for the shared base this
+# extends. ruff settings live in [tool.ruff] in pyproject.toml (not a
+# standalone ruff.toml). mypy is configured in [tool.mypy] for manual/CI
+# use but intentionally not wired in here — matching sibling projects
+# (doppler, just-makeit), which also run mypy outside of pre-commit.
+#
+# src/just_buildit/_vendor/ is a vendored MIT-licensed tomli backport and
+# is excluded everywhere below — left byte-for-byte as upstream ships it.
+exclude: ^src/just_buildit/_vendor/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.11.28
+    hooks:
+      - id: uv-lock
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.21
+    hooks:
+      - id: ruff
+        args: [--fix, --unsafe-fixes]
+      - id: ruff-format
+        # examples/** are quoted verbatim in docs/examples.md — formatting
+        # them would desync the docs from the actual fixture code.
+        exclude: ^(src/just_buildit/_vendor/|examples/)
+
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-gfm-alerts
+          - mdformat-mkdocs

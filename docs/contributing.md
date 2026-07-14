@@ -13,19 +13,19 @@ if those tools are not installed. `tests.test_cli` exercises the CLI via
 subprocess. `tests.test_metadata` verifies every PEP 621 field is mapped
 correctly into the wheel/sdist METADATA file.
 
----
+______________________________________________________________________
 
 ## Platform support
 
-| Platform | Tested on |
-|---|---|
-| Linux | x86-64 |
-| macOS | arm64 |
-| Windows | MinGW-w64 / UCRT64 (MSYS2), x86-64 |
+| Platform | Tested on                          |
+| -------- | ---------------------------------- |
+| Linux    | x86-64, aarch64                    |
+| macOS    | arm64                              |
+| Windows  | MinGW-w64 / UCRT64 (MSYS2), x86-64 |
 
 CI runs on all three platforms on every push.
 
----
+______________________________________________________________________
 
 ## Bootstrapping (offline or pre-release)
 
@@ -53,7 +53,7 @@ uv build --no-build-isolation
 No build step, no compiler, no install required. `src/just_buildit/` is
 importable as-is.
 
----
+______________________________________________________________________
 
 ## Releasing
 
@@ -103,7 +103,7 @@ git push origin vX.Y.Z
 - [ ] `release.yml` passes and the wheel lands on PyPI
 - [ ] Post-release smoke test: `python -m unittest tests.test_pypi -v`
 - [ ] (optional) build on the floor: `uvx --python 3.8 just-buildit@X.Y.Z`
-      against a C-extension fixture
+    against a C-extension fixture
 
 > **Never delete and re-push a tag after a successful publish** — that
 > re-triggers `release.yml` and the PyPI upload fails on a duplicate version.

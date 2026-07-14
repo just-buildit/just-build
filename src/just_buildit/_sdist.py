@@ -10,15 +10,29 @@ from __future__ import annotations
 import io
 import os
 import tarfile
-import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-_EXCLUDE_DIRS = frozenset({
-    ".git", ".hg", ".svn",
-    "__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache",
-    "dist", "build",
-    ".tox", ".venv", "venv", "env",
-})
+if TYPE_CHECKING:
+    from . import _meta
+
+_EXCLUDE_DIRS = frozenset(
+    {
+        ".git",
+        ".hg",
+        ".svn",
+        "__pycache__",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        "dist",
+        "build",
+        ".tox",
+        ".venv",
+        "venv",
+        "env",
+    }
+)
 _EXCLUDE_SUFFIXES = frozenset({".pyc", ".pyo"})
 
 
@@ -35,11 +49,12 @@ def _build_epoch() -> int:
 
 
 def _collect_files(project_root: Path) -> list[Path]:
-    """Walk project_root, pruning excluded dirs, and return source files for the sdist."""
+    """Walk project_root, pruning excluded dirs; return files for the sdist."""
     files = []
     for dirpath, dirs, filenames in os.walk(project_root, topdown=True):
         dirs[:] = sorted(
-            d for d in dirs
+            d
+            for d in dirs
             if d not in _EXCLUDE_DIRS and not d.endswith(".egg-info")
         )
         for name in sorted(filenames):
@@ -50,7 +65,9 @@ def _collect_files(project_root: Path) -> list[Path]:
     return files
 
 
-def build_sdist(project_root: Path, sdist_dir: Path, config) -> Path:
+def build_sdist(
+    project_root: Path, sdist_dir: Path, config: _meta.BuildConfig
+) -> Path:
     """Build a .tar.gz source distribution. Returns the path to the archive."""
     from ._wheel import _metadata_bytes, _normalize_name, _normalize_version
 
@@ -60,7 +77,8 @@ def build_sdist(project_root: Path, sdist_dir: Path, config) -> Path:
     sdist_path = sdist_dir / f"{top}.tar.gz"
 
     pkg_info = _metadata_bytes(
-        config.name, config.version,
+        config.name,
+        config.version,
         summary=config.summary,
         readme_text=config.readme_text,
         readme_content_type=config.readme_content_type,
