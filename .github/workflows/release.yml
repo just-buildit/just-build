@@ -71,8 +71,47 @@ jobs:
           name: dist
           path: dist/
 
-  publish:
+  smoke:
+    name: Smoke test the wheel
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: dist
+          path: dist/
+
+      - uses: astral-sh/setup-uv@v8.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the built wheel into a fresh venv
+        run: |
+          wheel="$(ls dist/*.whl)"
+          uv venv .smoke
+          uv pip install --python .smoke "$wheel"
+
+      - name: Version matches the tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          source .smoke/bin/activate
+          got="$(just-buildit --help | head -1 || python -c \
+            'import just_buildit; print(just_buildit.__version__)')"
+          pkg_ver="$(python -c \
+            'from importlib.metadata import version; print(version(\"just-buildit\"))')"
+          want="${GITHUB_REF_NAME#v}"
+          if [ "$pkg_ver" != "$want" ]; then
+            echo "::error::version mismatch (want $want, got $pkg_ver)"; exit 1
+          fi
+          echo "Version OK: $pkg_ver"
+
+      - name: CLI smoke (inspect + build)
+        run: |
+          source .smoke/bin/activate
+          just-buildit --help
+
+  publish:
+    needs: smoke
     # Only ever publish for a real version tag — never on a manual dry-run.
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -85,3 +124,30 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Extract changelog section for this tag
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+          awk -v ver="$VER" \
+            'index($0, "## [" ver "]") == 1 {found=1; next}
+             found && /^## / {exit}
+             found {print}' CHANGELOG.md > release-notes.md
+          cat release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --latest \
+            --notes-file release-notes.md
