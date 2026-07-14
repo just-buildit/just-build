@@ -77,3 +77,23 @@ jobs:
           update: true
       - shell: msys2 {0}
         run: python -m unittest tests.test_build tests.test_examples tests.test_cli -v
+
+  trigger-mirror:
+    name: Trigger docs mirror refresh
+    # Nudges just-buildit.github.io's mirror.yml (repository_dispatch:
+    # mirror) to refresh immediately instead of waiting for its daily cron.
+    # Never blocks anything else in this repo — not a required check. No
+    # ci-passed aggregator exists here (unlike just-bashit/just-makeit), so
+    # this depends on the full test matrix directly.
+    needs: [test, test-bazel, test-just-makeit, test-windows-ucrt64]
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    steps:
+      - name: Dispatch mirror refresh
+        env:
+          GH_TOKEN: ${{ secrets.MIRROR_DISPATCH_TOKEN }}
+        run: |
+          gh api repos/just-buildit/just-buildit.github.io/dispatches \
+            -f event_type=mirror
