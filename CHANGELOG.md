@@ -1,5 +1,67 @@
 # Changelog
 
+## [0.3.10] — 2026-07-14
+
+### CI
+
+- Added Linux aarch64 (`ubuntu-24.04-arm`, native GitHub runner) to the
+    `ci.yml`/`release.yml` test matrix — no longer x86-64-Linux/arm64-macOS
+    only.
+- Added a `Makefile` with the standard target set (`test`, `test-fast`,
+    `lint`, `build`, `docs`, `docs-serve`, `setup`, `bump-version`,
+    `check-version`, `release-branch`, `tag-release`, `clean`, `help`).
+- `release.yml`: added a `smoke` job (fresh-venv wheel install + version
+    check + CLI smoke) between `build` and `publish`; added a
+    `github-release` job that extracts the CHANGELOG section for the tag
+    and creates a GitHub Release.
+- Bumped GitHub Actions to node24-compatible versions
+    (`checkout@v6.0.2`, `setup-uv@v8.1.0`, `upload-artifact@v7.0.1`,
+    `download-artifact@v8.0.1`) ahead of GitHub's node20 deprecation.
+- Fixed macOS CI: `setup-uv@v8` fell back to the Xcode system Python (no
+    `Python.h`) for `uv run --no-project`; pinned the interpreter
+    explicitly and forced `UV_PYTHON_PREFERENCE=only-managed`.
+- Added a guarded `workflow_dispatch` dry-run to `release.yml` to verify
+    the full test + build matrix before cutting a tag (never touches
+    PyPI).
+- Added a `trigger-mirror` job that dispatches an immediate refresh to
+    `just-buildit.github.io`'s mirror workflow on push to `main`, instead
+    of waiting for its daily cron.
+- Added `.pre-commit-config.yaml` — ruff (lint + format) and mdformat,
+    matching the rest of the toolchain. `mypy` is configured in
+    `pyproject.toml` (`[tool.mypy]`) for manual/CI use but intentionally
+    not run via pre-commit.
+
+### Fixed
+
+- `run_repair`'s `repair_command` parameter was typed as `bool` instead
+    of `Literal[False]`, letting it silently accept `True` — never a
+    legal value. Caught by bringing the codebase to a clean
+    `mypy --strict` pass, which also fixed a handful of missing PEP 517
+    hook annotations and a `str`/`bool` type mismatch in `_meta.py`'s
+    `repair` handling.
+
+### Docs
+
+- `configuration.md`: the editable-install fallback claim was wrong —
+    `build_editable` raises `RuntimeError` when no editable source root
+    is found; it does not silently fall back to a full wheel build.
+- `environment-variables.md`: `SOURCE_DATE_EPOCH`'s documented default
+    was "current time"; it's actually a fixed `315532800` (1980-01-01
+    UTC) — builds are reproducible by default, with no configuration
+    needed.
+- `contributing.md`: the test command was missing `tests.test_metadata`;
+    the platform-support table now accurately reflects CI coverage
+    (including aarch64); rewrote the "Releasing" checklist with the
+    workflow lessons learned (bump via PR, tag `origin/main` not a local
+    commit, never re-push a tag after a successful publish).
+- `docs/index.md` (the published docs homepage) was missing the
+    just-makeit scaffold link that `README.md` already had.
+- `docs/llms.txt`: fixed a description that mischaracterized
+    just-buildit as CMake-specific — it's build-system-agnostic — and
+    added the file itself for AI/search discoverability.
+
+______________________________________________________________________
+
 ## [0.3.9] — 2026-06-04
 
 ### Added
