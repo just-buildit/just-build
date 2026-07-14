@@ -34,7 +34,7 @@ exclude = [                   # optional — glob patterns relative to $JUST_BUI
     Set `pure = true` to keep them as package data (useful when shipping C
     source templates or scaffolding examples alongside Python code).
 
----
+______________________________________________________________________
 
 ## Pure-Python packages
 
@@ -54,7 +54,7 @@ With `pure = true`, just-buildit:
 
 - compiles nothing — the `.c` scan is skipped entirely
 - copies the whole `src/{package}/` tree verbatim into the wheel, **keeping**
-  any `.c`/`.h` files as package data
+    any `.c`/`.h` files as package data
 - tags the wheel `py3-none-any` (`Root-Is-Purelib: true`)
 - skips the wheel-repair step — a pure wheel has no native binary to repair
 
@@ -70,17 +70,17 @@ With `pure = true`, just-buildit:
     `pure` means "compile nothing and copy the source tree verbatim."
     A build `command` is only needed when there is something to compile.
 
----
+______________________________________________________________________
 
 ## Wheel repair
 
 just-buildit automatically runs the right repair tool for your platform:
 
-| Platform | Auto-detected command |
-|:---|:---|
-| **Linux** | `uvx auditwheel repair` |
-| **macOS** | `uvx --from delocate delocate-wheel` |
-| **Windows / MinGW** | `uvx delvewheel repair` |
+| Platform            | Auto-detected command                |
+| :------------------ | :----------------------------------- |
+| **Linux**           | `uvx auditwheel repair`              |
+| **macOS**           | `uvx --from delocate delocate-wheel` |
+| **Windows / MinGW** | `uvx delvewheel repair`              |
 
 Override or disable repair in your config:
 
@@ -106,7 +106,7 @@ Accepts either a list of strings or a single space-separated string:
 repair-args = "--plat manylinux_2_28_x86_64 --strip"
 ```
 
----
+______________________________________________________________________
 
 ## Editable installs
 

@@ -15,6 +15,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from typing import ClassVar
 
 EXAMPLES = Path(__file__).parent.parent / "examples"
 SRC = Path(__file__).parent.parent / "src"
@@ -23,7 +24,7 @@ SRC = Path(__file__).parent.parent / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-import just_buildit  # noqa: E402
+import just_buildit
 
 
 def _build_example(example_dir: Path, wheel_dir: Path) -> str:
@@ -46,6 +47,7 @@ def _unpack_and_import(wheel_dir: Path, wheel_name: str, module_name: str):
         if module_name in sys.modules:
             del sys.modules[module_name]
         import importlib
+
         mod = importlib.import_module(module_name)
         return mod
     finally:
@@ -57,7 +59,11 @@ class TestMakeExample(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not shutil.which("cc") and not shutil.which("gcc") and not shutil.which("clang"):
+        if (
+            not shutil.which("cc")
+            and not shutil.which("gcc")
+            and not shutil.which("clang")
+        ):
             raise unittest.SkipTest("no C compiler found")
         cls._tmp = tempfile.mkdtemp(prefix="jb-make-")
         cls._wheel_dir = Path(cls._tmp) / "dist"
@@ -92,11 +98,14 @@ class TestCMakeExample(unittest.TestCase):
     def setUpClass(cls):
         if platform.system() == "Windows":
             raise unittest.SkipTest(
-                "cmake finds native Windows Python on MSYS2, not the MSYS2 Python"
+                "cmake finds native Windows Python on MSYS2, not the "
+                "MSYS2 Python"
             )
         missing = [t for t in ("cmake", "make") if not shutil.which(t)]
         if missing:
-            raise unittest.SkipTest(f"required tools not found: {', '.join(missing)}")
+            raise unittest.SkipTest(
+                f"required tools not found: {', '.join(missing)}"
+            )
         cls._tmp = tempfile.mkdtemp(prefix="jb-cmake-")
         cls._wheel_dir = Path(cls._tmp) / "dist"
         cls._wheel_dir.mkdir()
@@ -130,7 +139,9 @@ class TestMesonExample(unittest.TestCase):
     def setUpClass(cls):
         missing = [t for t in ("meson", "make") if not shutil.which(t)]
         if missing:
-            raise unittest.SkipTest(f"required tools not found: {', '.join(missing)}")
+            raise unittest.SkipTest(
+                f"required tools not found: {', '.join(missing)}"
+            )
         cls._tmp = tempfile.mkdtemp(prefix="jb-meson-")
         cls._wheel_dir = Path(cls._tmp) / "dist"
         cls._wheel_dir.mkdir()
@@ -164,7 +175,11 @@ class TestMixedExample(unittest.TestCase):
     def setUpClass(cls):
         if not shutil.which("make"):
             raise unittest.SkipTest("make not found")
-        if not shutil.which("cc") and not shutil.which("gcc") and not shutil.which("clang"):
+        if (
+            not shutil.which("cc")
+            and not shutil.which("gcc")
+            and not shutil.which("clang")
+        ):
             raise unittest.SkipTest("no C compiler found")
         cls._tmp = tempfile.mkdtemp(prefix="jb-mixed-")
         cls._wheel_dir = Path(cls._tmp) / "dist"
@@ -229,13 +244,17 @@ class TestBazelExample(unittest.TestCase):
 
 
 class TestNestedExample(unittest.TestCase):
-    """examples/nested/ — recursive package tree with extensions in subdirectories."""
+    """examples/nested/ — recursive package tree, extensions in subdirs."""
 
     @classmethod
     def setUpClass(cls):
         if not shutil.which("make"):
             raise unittest.SkipTest("make not found")
-        if not shutil.which("cc") and not shutil.which("gcc") and not shutil.which("clang"):
+        if (
+            not shutil.which("cc")
+            and not shutil.which("gcc")
+            and not shutil.which("clang")
+        ):
             raise unittest.SkipTest("no C compiler found")
         cls._tmp = tempfile.mkdtemp(prefix="jb-nested-")
         cls._wheel_dir = Path(cls._tmp) / "dist"
@@ -264,7 +283,9 @@ class TestNestedExample(unittest.TestCase):
         with zipfile.ZipFile(self._wheel_dir / self._wheel_name) as zf:
             names = zf.namelist()
         self.assertTrue(any(n == "imagelib/__init__.py" for n in names))
-        self.assertTrue(any(n == "imagelib/filters/__init__.py" for n in names))
+        self.assertTrue(
+            any(n == "imagelib/filters/__init__.py" for n in names)
+        )
         self.assertTrue(any(n == "imagelib/codec/__init__.py" for n in names))
 
     def test_blur_and_encode(self):
@@ -276,10 +297,10 @@ class TestNestedExample(unittest.TestCase):
 
 
 class TestJustMakeitExample(unittest.TestCase):
-    """just-makeit scaffolding: scaffold a project, verify layout, build, import."""
+    """just-makeit scaffolding: scaffold, verify layout, build, import."""
 
     # Files that must exist after `just-makeit new my_dsp --object gain ...`
-    _EXPECTED_FILES = [
+    _EXPECTED_FILES: ClassVar[list[str]] = [
         "just-makeit.toml",
         "CMakeLists.txt",
         "Makefile",
@@ -306,8 +327,14 @@ class TestJustMakeitExample(unittest.TestCase):
             raise unittest.SkipTest("just-makeit not installed")
         missing = [t for t in ("cmake", "make") if not shutil.which(t)]
         if missing:
-            raise unittest.SkipTest(f"required tools not found: {', '.join(missing)}")
-        if not shutil.which("cc") and not shutil.which("gcc") and not shutil.which("clang"):
+            raise unittest.SkipTest(
+                f"required tools not found: {', '.join(missing)}"
+            )
+        if (
+            not shutil.which("cc")
+            and not shutil.which("gcc")
+            and not shutil.which("clang")
+        ):
             raise unittest.SkipTest("no C compiler found")
 
         cls._tmp = tempfile.mkdtemp(prefix="jb-makeit-")
@@ -317,9 +344,13 @@ class TestJustMakeitExample(unittest.TestCase):
 
         subprocess.run(
             [
-                "just-makeit", "new", "my_dsp",
-                "--object", "gain",
-                "--state", "gain:double:1.0",
+                "just-makeit",
+                "new",
+                "my_dsp",
+                "--object",
+                "gain",
+                "--state",
+                "gain:double:1.0",
             ],
             cwd=cls._tmp,
             check=True,
@@ -331,7 +362,9 @@ class TestJustMakeitExample(unittest.TestCase):
         shutil.rmtree(cls._tmp, ignore_errors=True)
 
     def test_layout_key_files(self):
-        missing = [f for f in self._EXPECTED_FILES if not (self._proj / f).exists()]
+        missing = [
+            f for f in self._EXPECTED_FILES if not (self._proj / f).exists()
+        ]
         self.assertEqual(missing, [], f"Missing generated files: {missing}")
 
     def test_produces_whl_file(self):
@@ -363,7 +396,9 @@ class TestMinGWExample(unittest.TestCase):
             raise unittest.SkipTest("MinGW example only runs on Windows")
         missing = [t for t in ("make",) if not shutil.which(t)]
         if missing:
-            raise unittest.SkipTest(f"required tools not found: {', '.join(missing)}")
+            raise unittest.SkipTest(
+                f"required tools not found: {', '.join(missing)}"
+            )
         if not shutil.which("cc") and not shutil.which("gcc"):
             raise unittest.SkipTest("no C compiler found")
         cls._tmp = tempfile.mkdtemp(prefix="jb-mingw-")

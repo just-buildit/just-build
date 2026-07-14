@@ -13,7 +13,6 @@ Tests:
 
 import os
 import platform
-import subprocess
 import sys
 import sysconfig
 import tempfile
@@ -48,9 +47,8 @@ class TestNoDependencies(unittest.TestCase):
 
 
 class TestBuildEditable(unittest.TestCase):
-
     def test_no_src_dir_raises_runtime_error(self):
-        """Without editable_path and no src/ directory, build_editable() raises RuntimeError."""
+        """No editable_path and no src/: build_editable() raises."""
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
             (Path(tmp) / "pyproject.toml").write_text(
                 '[project]\nname = "foo"\nversion = "0.1.0"\n'
@@ -66,13 +64,13 @@ class TestBuildEditable(unittest.TestCase):
                 os.chdir(orig)
 
     def test_src_dir_auto_detected_for_editable(self):
-        """Without editable_path, build_editable() defaults to src/ when it exists."""
+        """Without editable_path, defaults to src/ if present."""
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
             src_dir = Path(tmp) / "src"
             src_dir.mkdir()
             (Path(tmp) / "pyproject.toml").write_text(
                 '[project]\nname = "foo"\nversion = "0.1.0"\n'
-                '[tool.just-buildit]\nrepair = false\n'
+                "[tool.just-buildit]\nrepair = false\n"
             )
             wheel_dir = Path(tmp) / "dist"
             wheel_dir.mkdir()
@@ -90,7 +88,7 @@ class TestBuildEditable(unittest.TestCase):
             self.assertEqual(pth_content, str(src_dir.resolve()))
 
     def test_editable_path_produces_pth_wheel(self):
-        """With editable_path set, build_editable() writes a .pth file — no build command."""
+        """With editable_path set, writes a .pth — no build cmd."""
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
             src_dir = Path(tmp) / "src"
             src_dir.mkdir()
@@ -112,8 +110,10 @@ class TestBuildEditable(unittest.TestCase):
             with zipfile.ZipFile(wheel_path) as zf:
                 names = zf.namelist()
             pth_files = [n for n in names if n.endswith(".pth")]
-            self.assertEqual(len(pth_files), 1, f"Expected one .pth file, got: {names}")
-            # Wheel should be pure Python (py3-none-any) — no compiled extension
+            self.assertEqual(
+                len(pth_files), 1, f"Expected one .pth file, got: {names}"
+            )
+            # Wheel should be pure Python (py3-none-any) — no compiled ext
             self.assertIn("py3-none-any", wheel_name)
             # .pth content must point at the resolved src/ directory
             with zipfile.ZipFile(wheel_path) as zf:
@@ -122,7 +122,6 @@ class TestBuildEditable(unittest.TestCase):
 
 
 class TestBuildWheel(unittest.TestCase):
-
     def _build_fixture(self, wheel_dir: Path) -> str:
         orig = os.getcwd()
         os.chdir(FIXTURE)
@@ -137,7 +136,9 @@ class TestBuildWheel(unittest.TestCase):
             wheel_dir.mkdir()
             wheel_name = self._build_fixture(wheel_dir)
             wheel_path = wheel_dir / wheel_name
-            self.assertTrue(wheel_path.exists(), f"Wheel not found: {wheel_path}")
+            self.assertTrue(
+                wheel_path.exists(), f"Wheel not found: {wheel_path}"
+            )
             self.assertEqual(wheel_path.suffix, ".whl")
 
     def test_wheel_is_valid_zip(self):
@@ -155,7 +156,9 @@ class TestBuildWheel(unittest.TestCase):
             with zipfile.ZipFile(wheel_dir / wheel_name) as zf:
                 names = zf.namelist()
             ext_files = [n for n in names if n.endswith((".so", ".pyd"))]
-            self.assertTrue(ext_files, f"No extension in wheel. Contents: {names}")
+            self.assertTrue(
+                ext_files, f"No extension in wheel. Contents: {names}"
+            )
 
     def test_wheel_contains_dist_info(self):
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
@@ -169,7 +172,9 @@ class TestBuildWheel(unittest.TestCase):
             self.assertTrue(any("RECORD" in n for n in names))
 
     def test_extension_is_importable_and_correct(self):
-        with tempfile.TemporaryDirectory(prefix="jb-test-", **_TMPDIR_KW) as tmp:
+        with tempfile.TemporaryDirectory(
+            prefix="jb-test-", **_TMPDIR_KW
+        ) as tmp:
             wheel_dir = Path(tmp) / "dist"
             wheel_dir.mkdir()
             install_dir = Path(tmp) / "site"
@@ -185,6 +190,7 @@ class TestBuildWheel(unittest.TestCase):
                 if "hello" in sys.modules:
                     del sys.modules["hello"]
                 import hello
+
                 self.assertEqual(hello.add(2, 3), 5)
                 self.assertEqual(hello.add(-1, 1), 0)
                 self.assertEqual(hello.add(100, 200), 300)
@@ -195,7 +201,7 @@ class TestBuildWheel(unittest.TestCase):
 
 
 class TestDefaultBuild(unittest.TestCase):
-    """Zero-config src/{name}/ path — no Makefile, no [tool.just-buildit] command."""
+    """Zero-config src/{name}/ path — no Makefile, no explicit command."""
 
     def _build_noconfig(self, wheel_dir: Path) -> str:
         orig = os.getcwd()
@@ -213,7 +219,9 @@ class TestDefaultBuild(unittest.TestCase):
             self.assertTrue((wheel_dir / wheel_name).exists())
 
     def test_extension_is_importable_and_correct(self):
-        with tempfile.TemporaryDirectory(prefix="jb-test-", **_TMPDIR_KW) as tmp:
+        with tempfile.TemporaryDirectory(
+            prefix="jb-test-", **_TMPDIR_KW
+        ) as tmp:
             wheel_dir = Path(tmp) / "dist"
             wheel_dir.mkdir()
             install_dir = Path(tmp) / "site"
@@ -228,6 +236,7 @@ class TestDefaultBuild(unittest.TestCase):
                 if "hello" in sys.modules:
                     del sys.modules["hello"]
                 import hello
+
                 self.assertEqual(hello.add(2, 3), 5)
             finally:
                 sys.path.remove(str(install_dir))
@@ -279,9 +288,7 @@ class TestPureBuild(unittest.TestCase):
             wheel_dir.mkdir()
             wheel_name = self._build_pure(wheel_dir)
             with zipfile.ZipFile(wheel_dir / wheel_name) as zf:
-                wheel_meta = zf.read(
-                    "purepkg-0.1.0.dist-info/WHEEL"
-                ).decode()
+                wheel_meta = zf.read("purepkg-0.1.0.dist-info/WHEEL").decode()
             self.assertIn("Root-Is-Purelib: true", wheel_meta)
 
     def test_importable_after_install(self):
@@ -299,6 +306,7 @@ class TestPureBuild(unittest.TestCase):
             try:
                 sys.modules.pop("purepkg", None)
                 import purepkg
+
                 self.assertEqual(purepkg.add(2, 3), 5)
             finally:
                 sys.path.remove(str(install_dir))
@@ -306,6 +314,7 @@ class TestPureBuild(unittest.TestCase):
 
     def test_pure_with_command_rejected(self):
         from just_buildit import _meta
+
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
             (Path(tmp) / "pyproject.toml").write_text(
                 '[project]\nname = "foo"\nversion = "0.1.0"\n\n'
@@ -343,7 +352,7 @@ class TestBuildEnv(unittest.TestCase):
             self.assertNotIn("-dynamiclib", flags)
 
     def test_python_link_flags_windows(self):
-        """On Windows, JUST_BUILDIT_LIBS carries -L and -lpython for the linker."""
+        """On Windows, JUST_BUILDIT_LIBS carries -L/-lpython for the linker."""
         if platform.system() != "Windows":
             self.skipTest("Windows-only")
         flags = self._build._python_link_flags()
@@ -355,7 +364,7 @@ class TestBuildEnv(unittest.TestCase):
         self.assertFalse(any(f.startswith("-l") for f in ldflags))
 
     def test_python_link_flags_non_windows(self):
-        """On Linux/macOS Python symbols resolve at runtime — JUST_BUILDIT_LIBS is empty."""
+        """On Linux/macOS symbols resolve at runtime — LIBS is empty."""
         if platform.system() == "Windows":
             self.skipTest("non-Windows only")
         self.assertEqual(self._build._python_link_flags(), [])
@@ -377,20 +386,28 @@ class TestRepairArgs(unittest.TestCase):
     def _write_pyproject(self, tmp: str, extra: str = "") -> None:
         (Path(tmp) / "pyproject.toml").write_text(
             '[project]\nname = "foo"\nversion = "0.1.0"\n'
-            '[tool.just-buildit]\n' + extra
+            "[tool.just-buildit]\n" + extra
         )
 
     def test_repair_args_list_parsed(self):
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
-            self._write_pyproject(tmp, 'repair-args = ["--plat", "manylinux_2_28_x86_64"]\n')
+            self._write_pyproject(
+                tmp, 'repair-args = ["--plat", "manylinux_2_28_x86_64"]\n'
+            )
             config = self._meta.load(Path(tmp))
-        self.assertEqual(config.repair_args, ["--plat", "manylinux_2_28_x86_64"])
+        self.assertEqual(
+            config.repair_args, ["--plat", "manylinux_2_28_x86_64"]
+        )
 
     def test_repair_args_string_parsed(self):
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
-            self._write_pyproject(tmp, 'repair-args = "--plat manylinux_2_28_x86_64"\n')
+            self._write_pyproject(
+                tmp, 'repair-args = "--plat manylinux_2_28_x86_64"\n'
+            )
             config = self._meta.load(Path(tmp))
-        self.assertEqual(config.repair_args, ["--plat", "manylinux_2_28_x86_64"])
+        self.assertEqual(
+            config.repair_args, ["--plat", "manylinux_2_28_x86_64"]
+        )
 
     def test_repair_args_default_empty(self):
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
@@ -400,9 +417,13 @@ class TestRepairArgs(unittest.TestCase):
             config = self._meta.load(Path(tmp))
         self.assertEqual(config.repair_args, [])
 
-    def _fake_repair_run(self, extra_wheel_name="foo-0.1.0-cp312-cp312-manylinux_2_28_x86_64.whl"):
-        """Return (captured, fake_run) where fake_run mocks subprocess.run for repair."""
+    def _fake_repair_run(
+        self,
+        extra_wheel_name="foo-0.1.0-cp312-cp312-manylinux_2_28_x86_64.whl",
+    ):
+        """Return (captured, fake_run); mocks the repair subprocess."""
         from unittest.mock import MagicMock
+
         captured = {}
 
         def fake_run(cmd, **kwargs):
@@ -427,8 +448,13 @@ class TestRepairArgs(unittest.TestCase):
             wheel_path = wheel_dir / "foo-0.1.0-cp312-cp312-linux_x86_64.whl"
             wheel_path.write_bytes(b"")
 
-            with patch.object(self._build.subprocess, "run", side_effect=fake_run), \
-                 patch.object(self._build.shutil, "which", return_value="/usr/bin/patchelf"):
+            with patch.object(
+                self._build.subprocess, "run", side_effect=fake_run
+            ), patch.object(
+                self._build.shutil,
+                "which",
+                return_value="/usr/bin/patchelf",
+            ):
                 self._build.run_repair(
                     wheel_path=wheel_path,
                     wheel_dir=wheel_dir,
@@ -441,10 +467,12 @@ class TestRepairArgs(unittest.TestCase):
         plat_idx = cmd.index("--plat")
         self.assertEqual(cmd[plat_idx + 1], "manylinux_2_28_x86_64")
         wheel_idx = cmd.index(str(wheel_path))
-        self.assertLess(plat_idx, wheel_idx, "--plat must precede the wheel path")
+        self.assertLess(
+            plat_idx, wheel_idx, "--plat must precede the wheel path"
+        )
 
     def test_run_repair_no_extra_args(self):
-        """Without repair_args the command is just: <repair_cmd> <wheel> -w <dir>."""
+        """Without repair_args: <repair_cmd> <wheel> -w <dir>, nothing else."""
         from unittest.mock import patch
 
         captured, fake_run = self._fake_repair_run()
@@ -454,8 +482,13 @@ class TestRepairArgs(unittest.TestCase):
             wheel_path = wheel_dir / "foo-0.1.0-cp312-cp312-linux_x86_64.whl"
             wheel_path.write_bytes(b"")
 
-            with patch.object(self._build.subprocess, "run", side_effect=fake_run), \
-                 patch.object(self._build.shutil, "which", return_value="/usr/bin/patchelf"):
+            with patch.object(
+                self._build.subprocess, "run", side_effect=fake_run
+            ), patch.object(
+                self._build.shutil,
+                "which",
+                return_value="/usr/bin/patchelf",
+            ):
                 self._build.run_repair(
                     wheel_path=wheel_path,
                     wheel_dir=wheel_dir,
@@ -469,7 +502,6 @@ class TestRepairArgs(unittest.TestCase):
 
 
 class TestErrorHandling(unittest.TestCase):
-
     def test_no_command_no_src_raises_file_not_found(self):
         with tempfile.TemporaryDirectory(prefix="jb-test-") as tmp:
             (Path(tmp) / "pyproject.toml").write_text(

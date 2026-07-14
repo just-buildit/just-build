@@ -4,7 +4,7 @@ You have an algorithm. It's fast in C. You want to call it from Python.
 
 What follows is, historically, an afternoon of pain.
 
----
+______________________________________________________________________
 
 ## The packaging wall
 
@@ -34,7 +34,7 @@ None of these say the thing that should be simple to say:
 
 > "You know how to build your project. Just tell me where the output is."
 
----
+______________________________________________________________________
 
 ## just-buildit
 
@@ -57,7 +57,7 @@ of the way.
 
 Zero dependency tree. No build system opinions. No conventions to learn.
 
----
+______________________________________________________________________
 
 ## What this unlocks
 
@@ -91,7 +91,7 @@ Implement your algorithm in the generated stub, run `make`, and you have a
 working Python C extension. The packaging machinery is already there — because
 just-buildit makes it a non-problem.
 
----
+______________________________________________________________________
 
 ## It's also a C library
 
@@ -120,7 +120,7 @@ target_link_libraries(my_app PRIVATE my_dsp::my_dsp_lib m)
 The Python package and the C library are the same project. You write the
 algorithm once.
 
----
+______________________________________________________________________
 
 ## The stack
 
@@ -138,7 +138,7 @@ just-buildit sits at the packaging layer and does one thing well. just-makeit
 sits above it and handles everything else. Neither tool tries to own more than
 its layer.
 
----
+______________________________________________________________________
 
 ## Try it
 
@@ -149,8 +149,8 @@ cd my_project && make && make test
 ```
 
 - [just-buildit](https://just-buildit.github.io/just-buildit/) — the PEP 517
-  backend
+    backend
 - [just-makeit](https://just-buildit.github.io/just-makeit/) — the scaffolding
-  tool
+    tool
 - [just-makeit: C library guide](https://just-buildit.github.io/just-makeit/c-library/)
-  — end-user install and consumption
+    — end-user install and consumption

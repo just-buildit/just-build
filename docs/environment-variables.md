@@ -4,13 +4,13 @@
 
 just-buildit sets these before calling your build command:
 
-| Variable | Example value | Purpose |
-|---|---|---|
-| `JUST_BUILDIT_NAME` | `mylib` | Normalized package name — use as the base of your output filename |
-| `JUST_BUILDIT_PYTHON` | `/usr/bin/python3.12` | Absolute path to the Python interpreter running the build |
-| `JUST_BUILDIT_INCLUDE_DIR` | `/usr/include/python3.12` | Python header directory — pass as `-I$JUST_BUILDIT_INCLUDE_DIR` |
-| `JUST_BUILDIT_OUTPUT_DIR` | `/tmp/just-buildit-xyz/output` | **Wheel content root** — write all output here |
-| `JUST_BUILDIT_EXT_SUFFIX` | `.cpython-312-x86_64-linux-gnu.so` | Full platform extension suffix for `.so` / `.pyd` naming |
+| Variable                   | Example value                      | Purpose                                                           |
+| -------------------------- | ---------------------------------- | ----------------------------------------------------------------- |
+| `JUST_BUILDIT_NAME`        | `mylib`                            | Normalized package name — use as the base of your output filename |
+| `JUST_BUILDIT_PYTHON`      | `/usr/bin/python3.12`              | Absolute path to the Python interpreter running the build         |
+| `JUST_BUILDIT_INCLUDE_DIR` | `/usr/include/python3.12`          | Python header directory — pass as `-I$JUST_BUILDIT_INCLUDE_DIR`   |
+| `JUST_BUILDIT_OUTPUT_DIR`  | `/tmp/just-buildit-xyz/output`     | **Wheel content root** — write all output here                    |
+| `JUST_BUILDIT_EXT_SUFFIX`  | `.cpython-312-x86_64-linux-gnu.so` | Full platform extension suffix for `.so` / `.pyd` naming          |
 
 !!! info "Output directory"
 
@@ -19,14 +19,14 @@ just-buildit sets these before calling your build command:
     sources, data files — and preserve the directory structure you want
     users to import.
 
----
+______________________________________________________________________
 
 ### Platform-specific link flags
 
-| Variable | Linux | macOS | Windows (MinGW) |
-|:---|:---:|:---:|:---:|
-| `JUST_BUILDIT_LDFLAGS` | `-shared -fPIC` | `-dynamiclib -undefined dynamic_lookup` | `-shared` |
-| `JUST_BUILDIT_LIBS` | *(empty)* | *(empty)* | `-L/ucrt64/lib -lpython3.14` |
+| Variable               |      Linux      |                  macOS                  |       Windows (MinGW)        |
+| :--------------------- | :-------------: | :-------------------------------------: | :--------------------------: |
+| `JUST_BUILDIT_LDFLAGS` | `-shared -fPIC` | `-dynamiclib -undefined dynamic_lookup` |          `-shared`           |
+| `JUST_BUILDIT_LIBS`    |    *(empty)*    |                *(empty)*                | `-L/ucrt64/lib -lpython3.14` |
 
 `JUST_BUILDIT_LIBS` is only non-empty when a custom `command` is configured
 **and** the platform is Windows/MinGW — where Python's import library must be
@@ -53,16 +53,16 @@ is sufficient.
     dropped. This is a no-op on Linux/macOS (where `JUST_BUILDIT_LIBS` is
     empty anyway), but the ordering habit matters on Windows/MinGW.
 
----
+______________________________________________________________________
 
 ## Variables read by just-buildit
 
 These are **not** set by just-buildit — they are read from the environment
 if already present.
 
-| Variable | Default | Effect |
-|:---|:---:|---|
-| `CC` | `cc` | C compiler for zero-config builds (no `command` set) |
+| Variable            |           Default            | Effect                                                      |
+| :------------------ | :--------------------------: | ----------------------------------------------------------- |
+| `CC`                |             `cc`             | C compiler for zero-config builds (no `command` set)        |
 | `SOURCE_DATE_EPOCH` | `315532800` (1980-01-01 UTC) | Unix timestamp clamped into wheel and sdist archive entries |
 
 !!! tip "Selecting the C compiler"

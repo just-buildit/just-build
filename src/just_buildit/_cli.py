@@ -1,12 +1,9 @@
-"""
-_cli.py — just-buildit command-line interface.
-"""
+"""_cli.py — just-buildit command-line interface."""
 
 from __future__ import annotations
 
 import sys
 from pathlib import Path
-
 
 _USAGE = """\
 Usage: just-buildit <command> [options]
@@ -28,6 +25,7 @@ def main() -> None:
         print(_USAGE, end="")
     elif args[0] in ("-V", "--version"):
         from just_buildit import __version__
+
         print(__version__)
     elif args[0] == "inspect":
         _inspect()
@@ -42,9 +40,16 @@ def main() -> None:
 
 
 def _inspect() -> None:
-    from . import _build, _meta
-    from ._wheel import _abi_tag, _normalize_name, _normalize_version, _platform_tag, _python_tag
     import sysconfig
+
+    from . import _build, _meta
+    from ._wheel import (
+        _abi_tag,
+        _normalize_name,
+        _normalize_version,
+        _platform_tag,
+        _python_tag,
+    )
 
     project_root = Path.cwd()
     try:
@@ -77,30 +82,32 @@ def _inspect() -> None:
     # Build mode
     if config.pure:
         pure = True
-        print(f"  build mode:      pure-Python  (src/{package}/ copied verbatim)")
-        print(f"  sources:         (none — compile nothing)")
+        print(
+            f"  build mode:      pure-Python  (src/{package}/ copied verbatim)"
+        )
+        print("  sources:         (none — compile nothing)")
     elif config.command is None:
         src_dir = project_root / "src" / package
         c_files = sorted(src_dir.rglob("*.c")) if src_dir.is_dir() else []
         pure = not bool(c_files)
         print(f"  build mode:      zero-config  (src/{package}/)")
         if c_files:
-            print(f"  sources:")
+            print("  sources:")
             for f in c_files:
                 print(f"    {f.relative_to(project_root)}")
         else:
-            print(f"  sources:         (none — pure Python)")
+            print("  sources:         (none — pure Python)")
     else:
         pure = False  # can't determine without running the build
         ldflags = " ".join(_build._ldflags())
         libs = " ".join(_build._python_link_flags())
-        print(f"  build mode:      custom command")
+        print("  build mode:      custom command")
         print(f"  command:         {config.command}")
-        print(f"  env vars:")
+        print("  env vars:")
         print(f"    JUST_BUILDIT_NAME        = {config.name}")
         print(f"    JUST_BUILDIT_PYTHON      = {sys.executable}")
         print(f"    JUST_BUILDIT_INCLUDE_DIR = {include_dir}")
-        print(f"    JUST_BUILDIT_OUTPUT_DIR  = <tempdir>/output")
+        print("    JUST_BUILDIT_OUTPUT_DIR  = <tempdir>/output")
         print(f"    JUST_BUILDIT_EXT_SUFFIX  = {ext_suffix}")
         print(f"    JUST_BUILDIT_LDFLAGS     = {ldflags}")
         if libs:
@@ -109,16 +116,19 @@ def _inspect() -> None:
 
     # Repair
     if config.pure:
-        print(f"  repair:          skipped (pure-Python wheel)")
+        print("  repair:          skipped (pure-Python wheel)")
     elif config.repair is False:
-        print(f"  repair:          disabled")
+        print("  repair:          disabled")
     elif config.repair is None:
         auto = _build._auto_repair_command()
-        print(f"  repair:          auto -> {auto or '(none for this platform)'}")
+        print(
+            f"  repair:          auto -> {auto or '(none for this platform)'}"
+        )
     else:
         print(f"  repair:          {config.repair}")
     if config.repair_args:
         import shlex
+
         print(f"  repair-args:     {shlex.join(config.repair_args)}")
     print()
 
@@ -132,7 +142,10 @@ def _inspect() -> None:
         )
     print(f"  wheel:           {wheel_name}")
     if config.command is not None:
-        print(f"  (platform tag is pre-repair; auditwheel/delocate may upgrade it)")
+        print(
+            "  (platform tag is pre-repair; "
+            "auditwheel/delocate may upgrade it)"
+        )
 
 
 def _build(rest: list[str]) -> None:

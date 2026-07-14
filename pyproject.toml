@@ -41,6 +41,7 @@ classifiers = [
 
 [dependency-groups]
 dev = [
+    "pre-commit",
     # Docs tooling only; zensical needs >=3.10, so gate it to keep the project
     # itself installable on the 3.8/3.9 floor.
     "zensical>=0.0.29; python_version >= '3.10'",
@@ -55,3 +56,68 @@ Repository = "https://github.com/just-buildit/just-buildit"
 Documentation = "https://just-buildit.github.io/just-buildit/"
 "Bug Tracker" = "https://github.com/just-buildit/just-buildit/issues"
 Changelog = "https://github.com/just-buildit/just-buildit/blob/main/CHANGELOG.md"
+
+[tool.ruff]
+line-length = 79
+target-version = "py38"
+# Vendored MIT-licensed tomli backport — left as upstream ships it.
+extend-exclude = ["src/just_buildit/_vendor"]
+# pre-commit passes files explicitly; force-exclude ensures extend-exclude
+# still applies even when ruff receives a vendored path on the command line.
+force-exclude = true
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes — undefined names, unused imports, redefinitions
+    "I",    # isort — import ordering
+    "UP",   # pyupgrade — modernise syntax to target-version
+    "B",    # flake8-bugbear — common bugs and design issues
+    "C4",   # flake8-comprehensions — idiomatic list/dict/set expressions
+    "SIM",  # flake8-simplify — unnecessary complexity
+    "TC",   # flake8-type-checking — TYPE_CHECKING import hygiene
+    "ANN",  # flake8-annotations — require type annotations on all functions
+    "D",    # pydocstyle — numpy-style docstrings (see [lint.pydocstyle] below)
+    "N",    # pep8-naming — consistent identifier casing
+    "NPY",  # numpy rules — deprecated API, random generator hygiene
+    "RUF",  # ruff-specific — miscellaneous correctness and style
+]
+ignore = [
+    "ANN204",  # missing return type on __init__ — always None, noisy
+    "ANN401",  # disallows `Any` — too strict for PEP 517 hook boundaries
+    "D107",    # missing docstring in __init__ — document on class, not __init__
+]
+
+[tool.ruff.lint.per-file-ignores]
+# ANN + D enforced on the public backend API only.
+"tests/**" = ["ANN", "D", "E402"]  # E402: sys.path insert before import
+# examples/** are quoted verbatim in docs/examples.md — kept lint-light
+# (ANN, D, E501) so their content matches the docs exactly, not a
+# formatter's opinion of it.
+"examples/**" = ["ANN", "D", "E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.isort]
+known-first-party = ["just_buildit"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+docstring-code-line-length = 79
+
+[tool.mypy]
+# mypy no longer supports checking against targets below 3.10, even though
+# just-buildit itself still supports 3.8+ at runtime — this is a lint-time
+# baseline only, not a runtime constraint.
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Vendored MIT-licensed tomli backport — left as upstream ships it.
+module = "just_buildit._vendor.*"
+ignore_errors = true
