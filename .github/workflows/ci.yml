@@ -13,6 +13,24 @@ env:
   UV_PYTHON_PREFERENCE: only-managed
 
 jobs:
+  # There was no lint job at all before this. Every pre-commit hook, every
+  # drift gate and every check in `make lint` ran on NO pull request -- which
+  # is worse than not having them, because the repo reads as gated.
+  #
+  # `make lint` and nothing else: the Makefile is the SSOT for how each tool
+  # runs, so a job that re-listed the tools here would be a second copy free to
+  # drift -- which is exactly what happened to the test command, where ci.yml
+  # passed `--with pip --with numpy` and the Makefile did not, so `make test`
+  # could not pass while CI was green.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v8.1.0
+        with:
+          python-version: "3.12"
+      - run: make lint
+
   test:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -30,7 +48,7 @@ jobs:
       - name: Install meson + ninja (macOS)
         if: runner.os == 'macOS'
         run: brew install ninja && uv tool install meson
-      - run: uv run --no-project -p ${{ matrix.python-version }} python -m unittest tests.test_build tests.test_examples tests.test_examples_target_interpreter tests.test_cli tests.test_metadata -v
+      - run: make test TEST_PYTHON=${{ matrix.python-version }}
 
   test-bazel:
     runs-on: ubuntu-latest
@@ -91,7 +109,8 @@ jobs:
     name: CI passed
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [test, test-bazel, test-just-makeit, test-windows-ucrt64]
+    needs:
+      [lint, test, test-bazel, test-just-makeit, test-windows-ucrt64]
     if: always()
     steps:
       - run: |
@@ -106,10 +125,13 @@ jobs:
     name: Trigger docs mirror refresh
     # Nudges just-buildit.github.io's mirror.yml (repository_dispatch:
     # mirror) to refresh immediately instead of waiting for its daily cron.
-    # Never blocks anything else in this repo — not a required check. No
-    # ci-passed aggregator exists here (unlike just-bashit/just-makeit), so
-    # this depends on the full test matrix directly.
-    needs: [test, test-bazel, test-just-makeit, test-windows-ucrt64]
+    # Never blocks anything else in this repo — not a required check.
+    #
+    # Hangs off `ci-passed` rather than re-listing the matrix. The comment
+    # here used to say no aggregator existed "unlike just-bashit/just-makeit"
+    # — which was true, and was also why main's ruleset required a check
+    # nothing produced and no pull request could merge.
+    needs: ci-passed
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'push' && github.ref == 'refs/heads/main' &&

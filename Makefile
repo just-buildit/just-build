@@ -22,6 +22,11 @@
 # back through the vendored copy.
 
 HAS_PYTHON  = 1
+
+# `test-all` has no second suite here, so `gates` depends on the one that
+# exists. A gate naming a target no CI job runs is a gate with no execution
+# home -- `gates-home-check` is what says so.
+GATES_DEPS  = lint test
 HAS_DOCS    = 1
 HAS_RELEASE = 1
 
@@ -42,7 +47,14 @@ SYNC_CMD   = $(UV) sync --group dev
 # drift a hand-maintained second copy of the test command produces; the
 # standard's `gates-check` is what holds them together, and adopting it is the
 # follow-up.
-_TEST_RUN     = $(UV) run --no-project --with pip --with numpy python
+# `TEST_PYTHON=3.12` selects an interpreter, so CI's matrix can CALL this
+# target instead of restating it. That restating is what let the two drift:
+# ci.yml passed `--with pip --with numpy` and this file did not, so `make test`
+# could not pass while CI was green.
+TEST_PYTHON ?=
+_TEST_RUN     = $(UV) run --no-project \
+                    $(if $(TEST_PYTHON),-p $(TEST_PYTHON),) \
+                    --with pip --with numpy python
 _TEST_MODULES = tests.test_build tests.test_examples \
                 tests.test_examples_target_interpreter \
                 tests.test_cli tests.test_metadata
@@ -63,6 +75,38 @@ DOCS_CMD = $(ZENSICAL) build --clean
 CLEAN_PATHS = dist site .pytest_cache
 CLEAN_CMD   = find src -name '*.pyc' -delete; \
               find src -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null; true
+
+# ── lint ─────────────────────────────────────────────────────────────────────
+# EVERY pre-commit hook dispatches inward to `make lint-<tool>`, so the hook
+# and `make format` cannot format differently. Before this the ruff, ruff-format
+# and mdformat hooks came from upstream MIRRORS: the version lived in a `rev:`
+# rather than in pyproject's dev group, and nothing held the hook's invocation
+# equal to the Makefile's. `hook-dispatch-check` -- which arrived with
+# standard.mk -- is what named it.
+RUFF       = $(DEV_RUN) ruff
+MDFORMAT   = $(DEV_RUN) mdformat
+PRE_COMMIT = $(DEV_RUN) pre-commit
+
+LINT_TOOLS = ruff ruff-format mdformat
+# ruff before ruff-format when FIXING, so the formatter has the last word.
+FORMAT_TOOLS = ruff-format ruff mdformat
+
+# The vendored tomli backport is left byte-for-byte as upstream ships it.
+RUFF_PATHS = src tests
+# examples/** are quoted verbatim in docs/examples.md; formatting them would
+# desync the docs from the fixture code they document.
+RUFF_EXCLUDE = --exclude src/just_buildit/_vendor
+MD_EXCLUDE_RE = ^(src/just_buildit/_vendor/)
+
+LINT_ruff        = $(RUFF) check --fix --unsafe-fixes $(RUFF_EXCLUDE) \
+                       $(RUFF_PATHS)
+LINT_ruff-format = $(RUFF) format $(RUFF_EXCLUDE) $(RUFF_PATHS)
+
+define LINT_mdformat
+@git ls-files '*.md' \
+    | grep -Ev '$(MD_EXCLUDE_RE)' \
+    | xargs -r $(MDFORMAT)
+endef
 
 # ── release ──────────────────────────────────────────────────────────────────
 PROJECT = just-buildit
