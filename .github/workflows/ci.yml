@@ -78,6 +78,30 @@ jobs:
       - shell: msys2 {0}
         run: python -m unittest tests.test_build tests.test_examples tests.test_cli -v
 
+  # The one check main's ruleset requires -- and it did not exist. The rule
+  # named `CI passed`, no job produced it, so `mergeable_state` was `blocked`
+  # on every pull request with every check green. A required check that nothing
+  # reports is not a strict gate; it is a repository that cannot merge, and it
+  # reads as ordinary CI slowness until someone looks at the ruleset.
+  #
+  # `if: always()` with an explicit failure scan rather than plain `needs:`,
+  # so a SKIPPED job does not read as a failure and a failed one cannot be
+  # skipped past.
+  ci-passed:
+    name: CI passed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [test, test-bazel, test-just-makeit, test-windows-ucrt64]
+    if: always()
+    steps:
+      - run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            exit 1
+          fi
+
   trigger-mirror:
     name: Trigger docs mirror refresh
     # Nudges just-buildit.github.io's mirror.yml (repository_dispatch:
