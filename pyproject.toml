@@ -42,6 +42,23 @@ classifiers = [
 [dependency-groups]
 dev = [
     "pre-commit",
+    # This group is the SSOT for dev TOOL VERSIONS; the Makefile is the SSOT
+    # for how they run, and every pre-commit hook dispatches inward to
+    # `make lint-<tool>`. These used to live in `rev:` pins on upstream
+    # pre-commit mirrors, which put the version outside this file and left the
+    # hook's invocation free to differ from the Makefile's.
+    #
+    # Pinned exactly: a formatter is only useful if every machine and CI agree
+    # byte-for-byte on its output. `ruff` matches the rev the mirror carried,
+    # so this move changes no formatting on day one -- verified by running
+    # `make format` and getting an empty diff.
+    "ruff==0.15.21",
+    # mdformat needs >=3.10, gated like zensical below to keep the project
+    # installable on the 3.8/3.9 floor.
+    "mdformat==1.0.0; python_version >= '3.10'",
+    "mdformat-gfm; python_version >= '3.10'",
+    "mdformat-gfm-alerts; python_version >= '3.10'",
+    "mdformat-mkdocs; python_version >= '3.10'",
     # Docs tooling only; zensical needs >=3.10, so gate it to keep the project
     # itself installable on the 3.8/3.9 floor.
     "zensical>=0.0.29; python_version >= '3.10'",

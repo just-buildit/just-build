@@ -26,21 +26,27 @@ repos:
     hooks:
       - id: uv-lock
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.21
+  # Dispatches inward so a hook cannot format differently from `make format`.
+  # Versions come from pyproject.toml's dev group via uv.lock, so there is no
+  # `rev:` and no additional_dependencies list to drift. Paths and exclusions
+  # live in the Makefile, which is the SSOT for HOW every tool runs.
+  - repo: local
     hooks:
       - id: ruff
-        args: [--fix, --unsafe-fixes]
+        name: ruff
+        entry: make -s lint-ruff
+        language: system
+        types: [python]
+        pass_filenames: false
       - id: ruff-format
-        # examples/** are quoted verbatim in docs/examples.md — formatting
-        # them would desync the docs from the actual fixture code.
-        exclude: ^(src/just_buildit/_vendor/|examples/)
-
-  - repo: https://github.com/hukkin/mdformat
-    rev: 1.0.0
-    hooks:
+        name: ruff format
+        entry: make -s lint-ruff-format
+        language: system
+        types: [python]
+        pass_filenames: false
       - id: mdformat
-        additional_dependencies:
-          - mdformat-gfm
-          - mdformat-gfm-alerts
-          - mdformat-mkdocs
+        name: mdformat
+        entry: make -s lint-mdformat
+        language: system
+        types: [markdown]
+        pass_filenames: false
