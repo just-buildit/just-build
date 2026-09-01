@@ -30,7 +30,7 @@ jobs:
       - name: Install meson + ninja (macOS)
         if: runner.os == 'macOS'
         run: brew install ninja && uv tool install meson
-      - run: uv run --no-project -p ${{ matrix.python-version }} python -m unittest tests.test_build tests.test_examples tests.test_cli tests.test_metadata -v
+      - run: uv run --no-project -p ${{ matrix.python-version }} python -m unittest tests.test_build tests.test_examples tests.test_examples_target_interpreter tests.test_cli tests.test_metadata -v
 
   test-bazel:
     runs-on: ubuntu-latest
