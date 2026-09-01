@@ -1,0 +1,3 @@
+# Set by the Makefile from JUST_BUILDIT_PYTHON; see meson.build.
+option('python_path', type: 'string', value: 'python3',
+       description: 'Interpreter to build the extension for')

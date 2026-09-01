@@ -44,6 +44,7 @@ SYNC_CMD   = $(UV) sync --group dev
 # follow-up.
 _TEST_RUN     = $(UV) run --no-project --with pip --with numpy python
 _TEST_MODULES = tests.test_build tests.test_examples \
+                tests.test_examples_target_interpreter \
                 tests.test_cli tests.test_metadata
 TEST_CMD      = $(_TEST_RUN) -m unittest $(_TEST_MODULES) -v
 TEST_FAST_CMD = $(_TEST_RUN) -m unittest --failfast $(_TEST_MODULES)
