@@ -58,6 +58,18 @@ release path had only ever built a wheel, so nothing outside
     because an sdist that is published but never installed is an unchecked
     artifact. (#19)
 
+### Docs
+
+- **`docs/examples.md` taught the bug this release fixes.** Its cmake and
+    meson snippets were hand-copied from the example files and never updated,
+    so a reader following the CMake page got
+    `find_package(Python3 COMPONENTS Development.Module)` with no header hint
+    — the exact configuration that produces a right-named, wrong-ABI
+    extension. The meson page had the bare `find_installation()`, its Makefile
+    snippet was missing `-Dpython_path=`, and `meson_options.txt` was not
+    documented at all. All three snippets now match the files they claim to
+    show, verified needle-by-needle against those files rather than by eye.
+
 ### CI
 
 - **Added a `lint` job. There was none** — every pre-commit hook, every

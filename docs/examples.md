@@ -135,6 +135,15 @@ clean:
 cmake_minimum_required(VERSION 3.15)
 project(add C)
 
+# Build for the interpreter just-buildit is building FOR, not whatever cmake
+# finds first. `Development.Module` searches for HEADERS, so setting
+# Python3_EXECUTABLE alone is not enough -- it needs the header hint.
+if(DEFINED ENV{JUST_BUILDIT_PYTHON})
+    set(Python3_EXECUTABLE "$ENV{JUST_BUILDIT_PYTHON}")
+endif()
+if(DEFINED ENV{JUST_BUILDIT_INCLUDE_DIR})
+    set(Python3_INCLUDE_DIR "$ENV{JUST_BUILDIT_INCLUDE_DIR}")
+endif()
 find_package(Python3 COMPONENTS Development.Module REQUIRED)
 Python3_add_library(add MODULE src/add.c)
 set_target_properties(add PROPERTIES
@@ -212,7 +221,8 @@ repair = false
 
 ```makefile
 pyext:
-	meson setup _build --wipe -Dbuildtype=release
+	meson setup _build --wipe -Dbuildtype=release \
+	    -Dpython_path="$${JUST_BUILDIT_PYTHON:-python3}"
 	meson compile -C _build
 	find _build -name "*$(JUST_BUILDIT_EXT_SUFFIX)" \
 		-exec cp {} $(JUST_BUILDIT_OUTPUT_DIR)/ \;
@@ -225,8 +235,20 @@ clean:
 
 ```python
 project('add', 'c')
-py = import('python').find_installation()
+# `find_installation()` with no argument takes whatever meson finds, which is
+# a different Python whenever the build runs under a venv while another
+# python3 leads PATH. meson.build cannot read the environment, so the
+# Makefile passes the interpreter through this option.
+py = import('python').find_installation(get_option('python_path'))
 py.extension_module('add', 'src/add.c', install: false, build_by_default: true)
+```
+
+**`meson_options.txt`**
+
+```python
+# Set by the Makefile from JUST_BUILDIT_PYTHON; see meson.build.
+option('python_path', type: 'string', value: 'python3',
+       description: 'Interpreter to build the extension for')
 ```
 
 **`src/add.c`** — same as the CMake example above.
