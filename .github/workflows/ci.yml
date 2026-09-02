@@ -26,6 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          # changelog-check asserts every release tag has a section, and the
+          # default checkout fetches NO tags -- the scan would run over an
+          # empty set and report success. It refuses to, so it needs these.
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v8.1.0
         with:
           python-version: "3.12"
