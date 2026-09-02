@@ -2,9 +2,11 @@
 
 ## [0.3.11] — 2026-09-01
 
-No change to the packaged code: `src/just_buildit/` is byte-identical to
-0.3.10, so the wheel differs only in its version metadata. This release
-records the examples, build-contract and CI work below.
+`src/just_buildit/` is byte-identical to 0.3.10, so the **wheel** differs only
+in its version metadata. This release publishes an **sdist** for the first
+time, which is what actually carries the examples work below to PyPI — the
+release path had only ever built a wheel, so nothing outside
+`src/just_buildit/` had ever reached a consumer at any version.
 
 ### Fixed
 
@@ -44,6 +46,17 @@ records the examples, build-contract and CI work below.
 - Two target renames, neither of which anything in this repo invoked:
     `make build` → `make wheel`, and `make check-version` →
     `make version-check`.
+
+### Added
+
+- **The release now publishes an sdist.** `release.yml` built
+    `uv build --wheel` and nothing else, so PyPI received a wheel containing
+    only `just_buildit/` — 17 entries — and everything else in the repo,
+    `examples/` above all, reached no consumer at any version. The locally
+    built 0.3.11 sdist carries 148 entries, 92 of them under `examples/`.
+    The smoke job now asserts the sdist carries the tree and that it builds,
+    because an sdist that is published but never installed is an unchecked
+    artifact. (#19)
 
 ### CI
 
