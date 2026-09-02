@@ -14,6 +14,11 @@
     no tags, so the per-tag scan would have run over an empty set and reported
     success; the gate refuses on zero tags rather than reading silence as a
     pass.
+- Corrected the sdist figure in 0.3.11's notes above. It was measured on a
+    local build over a tree where the example tests had run, and `_sdist.py`
+    excludes `build` but not `_build` — so 62 of the 92 `examples/` entries
+    quoted were object files and ninja logs. The published sdist has none,
+    because CI builds from a fresh checkout. (#25)
 - `bump-version` runs `uv lock`, and `uv.lock` joined `VERSION_PROBES`. The
     lock pins this project's own version, so a bump that touched only
     `pyproject.toml` left a tree that would not commit. (#21)
@@ -70,8 +75,9 @@ release path had only ever built a wheel, so nothing outside
 - **The release now publishes an sdist.** `release.yml` built
     `uv build --wheel` and nothing else, so PyPI received a wheel containing
     only `just_buildit/` — 17 entries — and everything else in the repo,
-    `examples/` above all, reached no consumer at any version. The locally
-    built 0.3.11 sdist carries 148 entries, 92 of them under `examples/`.
+    `examples/` above all, reached no consumer at any version. The published
+    0.3.11 sdist carries 30 files under `examples/` and 12 under `docs/`,
+    verified by downloading it from PyPI.
     The smoke job now asserts the sdist carries the tree and that it builds,
     because an sdist that is published but never installed is an unchecked
     artifact. (#19)
