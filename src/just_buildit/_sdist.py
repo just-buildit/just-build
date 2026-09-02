@@ -27,6 +27,14 @@ _EXCLUDE_DIRS = frozenset(
         ".ruff_cache",
         "dist",
         "build",
+        # The underscore spelling is just as conventional as `build` and was
+        # missing, so an sdist built in a tree where anything had been
+        # compiled swept the artifacts in. Measured on this repo: a local
+        # 0.3.11 sdist carried 92 entries under `examples/`, 62 of them object
+        # files, ninja logs and meson caches from `examples/*/_build/`. The
+        # published one has 30, because CI builds from a fresh checkout --
+        # which is exactly why the release path could not see this.
+        "_build",
         ".tox",
         ".venv",
         "venv",

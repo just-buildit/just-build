@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **The sdist no longer carries `_build/` output.** `_EXCLUDE_DIRS` had
+    `build` and `dist` but not the underscore spelling, so building an sdist
+    in a tree where anything had been compiled swept the artifacts in. This
+    affects **every project that uses just-buildit as its backend**, not just
+    this repo — `_build` is the conventional name for cmake, meson and Sphinx
+    output. Measured here: a local 0.3.11 sdist carried 92 entries under
+    `examples/`, 62 of them object files, ninja logs and meson caches; the
+    published one carried 30, because CI builds from a fresh checkout — which
+    is precisely why the release path could not see this. (#25)
+- `tests/test_sdist_excludes.py` builds an sdist over a tree that contains
+    build output at top level *and* nested inside an example, then asserts
+    none of it appears and that real source still does. The exclusion list is
+    a list of names, so the only way to know it covers a directory is to put
+    that directory in a tree and build from it; asserting on the constant
+    would have passed for the value that shipped the bug.
+
 ### CI
 
 - `changelog-check` now has an execution home in `lint`, so a release tag
