@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased]
+
+### CI
+
+- `changelog-check` now has an execution home in `lint`, so a release tag
+    without a CHANGELOG section, or work in flight without an `[Unreleased]`
+    one, fails CI. It found five tags with no section on its first run
+    (v0.1.0, v0.2.2-v0.2.5); those are ratcheted in `.changelog-allow`, which
+    may only shrink — and a stale entry, a listed tag that has since gained a
+    section, fails too. (#20)
+- The `lint` job checks out with `fetch-depth: 0`. `actions/checkout` fetches
+    no tags, so the per-tag scan would have run over an empty set and reported
+    success; the gate refuses on zero tags rather than reading silence as a
+    pass.
+- `bump-version` runs `uv lock`, and `uv.lock` joined `VERSION_PROBES`. The
+    lock pins this project's own version, so a bump that touched only
+    `pyproject.toml` left a tree that would not commit. (#21)
+
 ## [0.3.11] — 2026-09-01
 
 `src/just_buildit/` is byte-identical to 0.3.10, so the **wheel** differs only
