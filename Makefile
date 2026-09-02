@@ -111,14 +111,20 @@ endef
 # ── release ──────────────────────────────────────────────────────────────────
 PROJECT = just-buildit
 
+# `uv lock` too: uv.lock pins this project's own version, so a bump that
+# touched pyproject alone left a tree that would not commit -- the `uv-lock`
+# hook rewrites the lock, then pre-commit rolls the commit back because the
+# rewrite conflicts with the stashed changes (#21). The target's help already
+# promised "manifests", plural.
 BUMP_VERSION_CMD = sed -i 's/^version = "[^"]*"/version = "$(VERSION)"/' \
-                       pyproject.toml
+                       pyproject.toml && uv lock --quiet
 
 # Every file that states the version, and how to read it back. `version-check`
 # fails when any two disagree, so a bump that misses a file is caught before
 # the tag rather than by a consumer.
 define VERSION_PROBES
 pyproject.toml|grep '^version = ' pyproject.toml | sed 's/.*"\(.*\)".*/\1/'
+uv.lock|grep -A1 '^name = "just-buildit"$$' uv.lock | grep '^version' | sed 's/.*"\(.*\)".*/\1/'
 endef
 
 # The release watcher is VENDORED from canonical and gated by standard-check;

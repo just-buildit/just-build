@@ -1,0 +1,16 @@
+# Release tags that have NO section in CHANGELOG.md.
+#
+# Existing breakage, ratcheted: this list may only SHRINK. A NEW release must
+# have a section -- adding a line here is not the fix.
+#
+# All five predate the current changelog discipline. They are recorded rather
+# than back-filled because the notes for them no longer exist anywhere; the
+# point of the list is that the gate can run at all, not that these are fine.
+#
+# The gate also fails on a STALE entry -- a tag listed here that has since
+# gained a section -- so the list cannot quietly describe a fixed problem.
+v0.1.0
+v0.2.2
+v0.2.3
+v0.2.4
+v0.2.5
