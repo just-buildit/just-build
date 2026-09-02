@@ -66,13 +66,17 @@ jobs:
         with:
           python-version: "3.11"
       - run: PYTHONPATH=src uv build --wheel --no-build-isolation --python 3.11
+      # The sdist is what carries everything outside src/ -- examples above
+      # all. Publishing only the wheel made repo-level work unreachable from
+      # PyPI at every version (#19).
+      - run: PYTHONPATH=src uv build --sdist --no-build-isolation --python 3.11
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: dist
           path: dist/
 
   smoke:
-    name: Smoke test the wheel
+    name: Smoke test the wheel and the sdist
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -106,6 +110,26 @@ jobs:
         run: |
           source .smoke/bin/activate
           just-buildit --help
+
+      # An sdist that is published but never installed is an unchecked
+      # artifact. Both halves matter: that it CONTAINS the tree, and that it
+      # BUILDS from it.
+      - name: The sdist carries the repo tree, not just the package
+        run: |
+          sdist="$(ls dist/*.tar.gz)"
+          echo "inspecting $sdist"
+          n_examples="$(tar tzf "$sdist" | grep -c '/examples/' || true)"
+          echo "entries under examples/: $n_examples"
+          if [ "$n_examples" -eq 0 ]; then
+            echo "::error::sdist carries no examples/ -- see #19"; exit 1
+          fi
+
+      - name: The sdist builds
+        run: |
+          sdist="$(ls dist/*.tar.gz)"
+          uv venv .sdist-smoke
+          uv pip install --python .sdist-smoke "$sdist"
+          .sdist-smoke/bin/python -c 'import just_buildit; print(just_buildit.__name__, "ok")'
 
   publish:
     needs: smoke
