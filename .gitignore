@@ -22,3 +22,8 @@ tests/fixture/dist/
 
 # Zensical build output
 site/
+
+# Editor config. Deliberately not tracked: VS Code writes machine-specific
+# absolute paths into it (cmake.sourceDirectory pointed at one machine's
+# $HOME for the life of the file). See #16.
+.vscode/
