@@ -7,14 +7,15 @@ directory is to put that directory in a tree and build from it. Asserting on
 it -- including the one that shipped `_build/` (#25).
 """
 
+import sys
 import tarfile
 import tempfile
 import unittest
 from pathlib import Path
 
 SRC = Path(__file__).parent.parent / "src"
-if str(SRC) not in __import__("sys").path:
-    __import__("sys").path.insert(0, str(SRC))
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 from just_buildit import _meta, _sdist
 
