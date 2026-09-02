@@ -1,5 +1,73 @@
 # Changelog
 
+## [0.3.11] — 2026-09-01
+
+No change to the packaged code: `src/just_buildit/` is byte-identical to
+0.3.10, so the wheel differs only in its version metadata. This release
+records the examples, build-contract and CI work below.
+
+### Fixed
+
+- **Examples now build for the interpreter just-buildit targets**, instead
+    of letting their build system search for one. just-buildit tells every
+    build which interpreter it is building *for* (`JUST_BUILDIT_PYTHON`,
+    `JUST_BUILDIT_INCLUDE_DIR`); two examples took neither.
+    - `examples/cmake` was the dangerous half: its
+        `find_package` call for `Development.Module` compiled against the
+        *system* headers while the example forced `SUFFIX` from
+        `JUST_BUILDIT_EXT_SUFFIX` — producing a right-named, wrong-ABI
+        extension that built cleanly and failed at import. It takes
+        `Python3_INCLUDE_DIR` from `JUST_BUILDIT_INCLUDE_DIR` now. Setting
+        `Python3_EXECUTABLE` alone does not fix it: `Development.Module`
+        looks for headers.
+    - `examples/meson` built a `.cpython-314-*.so` when 3.12 was the
+        target, and failed as "Build produced no extension" — pointing at
+        the copy step rather than the interpreter. `meson.build` cannot
+        read the environment, so it takes a `python_path` option that the
+        Makefile passes through, defaulting to `python3` so the example
+        still runs standalone.
+    - Covered by a static, per-example gate. Static because CI cannot see
+        this class at all — there the default `python3` *is* the
+        interpreter under test, so the two can never disagree; it only
+        appears where they differ, which is every machine with a venv.
+- `make test` could not pass in this repo while CI was green: the Makefile
+    omitted the `--with pip --with numpy` that ci.yml supplied, so
+    `TestJustMakeitExample` failed in `setUpClass`. The test command now
+    exists once.
+
+### Changed
+
+- Adopted the cross-org `standard.mk`: 135 lines that reimplemented
+    thirteen of its fourteen targets by hand are now configuration plus
+    `include standard.mk`. `help` is generated from each rule's
+    description (29 targets, up from the 14 listed by hand).
+- Two target renames, neither of which anything in this repo invoked:
+    `make build` → `make wheel`, and `make check-version` →
+    `make version-check`.
+
+### CI
+
+- **Added a `lint` job. There was none** — every pre-commit hook, every
+    drift gate and every check in `make lint` ran on no pull request,
+    which is worse than not having them, because the repo reads as gated.
+- Added the `CI passed` aggregate check that `main`'s ruleset requires.
+    No job produced it, so every pull request sat at
+    `mergeable_state=blocked` with zero failing and zero pending — the
+    repository could not merge at all, and it read as ordinary CI
+    slowness.
+- ci.yml calls `make test` rather than restating the test command, which
+    is how the two drifted in the first place.
+- Vendored canonical's `release-watch.sh`. The release path had no
+    watcher: `tag-release` pushed the tag and stopped, with nothing
+    following the run, recovering a pre-publish flake, or verifying that
+    PyPI and the GitHub Release carried the version.
+- pre-commit hooks dispatch inward to `make lint-<tool>`, with tool
+    versions in the dev dependency group rather than upstream mirror
+    `rev:` pins — so the hook and `make format` can no longer format
+    differently. Verified to change no formatting.
+- `.vscode/settings.json` is no longer tracked. It pinned
+    `cmake.sourceDirectory` to one machine's `$HOME`.
+
 ## [0.3.10] — 2026-07-14
 
 ### CI
